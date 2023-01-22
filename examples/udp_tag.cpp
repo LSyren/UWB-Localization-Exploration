@@ -7,12 +7,29 @@ For ESP32 UWB or ESP32 UWB Pro
 #include <WiFi.h>
 #include "link.h"
 
+#ifdef MAKERFABS
+
 #define SPI_SCK 18
 #define SPI_MISO 19
 #define SPI_MOSI 23
 #define DW_CS 4
 #define PIN_RST 27
 #define PIN_IRQ 34
+
+#endif
+
+#ifdef BLUEPILL
+
+#define SPI_SCK PB13
+#define SPI_MISO PB14
+#define SPI_MOSI PB15
+
+// connection pins
+const uint8_t PIN_RST = PA12; // reset pin
+const uint8_t PIN_IRQ = PA11; // irq pin
+const uint8_t PIN_SS = PB12;   // spi select pin
+
+#endif
 
 const char *ssid = "xxxx";
 const char *password = "xxxxx";
@@ -93,7 +110,13 @@ void setup()
     delay(1000);
 
     //init the configuration
+    #ifdef MAKERFABS
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    #endif
+
+    #ifdef BLUEPILL
+    SPI.begin(115200);
+    #endif
     DW1000Ranging.initCommunication(PIN_RST, DW_CS, PIN_IRQ);
     DW1000Ranging.attachNewRange(newRange);
     DW1000Ranging.attachNewDevice(newDevice);

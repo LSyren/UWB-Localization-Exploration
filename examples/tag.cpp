@@ -6,6 +6,8 @@ Code for tag.
 #include <SPI.h>
 #include "DW1000Ranging.h"
 
+#ifdef MAKERFABS
+
 #define SPI_SCK 18
 #define SPI_MISO 19
 #define SPI_MOSI 23
@@ -15,6 +17,21 @@ Code for tag.
 const uint8_t PIN_RST = 27; // reset pin
 const uint8_t PIN_IRQ = 34; // irq pin
 const uint8_t PIN_SS = 4;   // spi select pin
+
+#endif
+
+#ifdef BLUEPILL
+
+#define SPI_SCK PB13
+#define SPI_MISO PB14
+#define SPI_MOSI PB15
+
+// connection pins
+const uint8_t PIN_RST = PA12; // reset pin
+const uint8_t PIN_IRQ = PA11; // irq pin
+const uint8_t PIN_SS = PB12;   // spi select pin
+
+#endif
 
 void newRange()
 {
@@ -46,7 +63,13 @@ void setup()
     Serial.begin(115200);
     delay(1000);
     //init the configuration
+    #ifdef MAKERFABS
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+    #endif
+
+    #ifdef BLUEPILL
+    SPI.begin(115200);
+    #endif
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
     //define the sketch as anchor. It will be great to dynamically change the type of module
 
