@@ -22,6 +22,7 @@ uint8_t tags = 0;
 
 void newRange()
 {
+    /*
     Serial.print("from: ");
     Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
     Serial.print("\t Range: ");
@@ -30,6 +31,7 @@ void newRange()
     Serial.print("\t RX power: ");
     Serial.print(DW1000Ranging.getDistantDevice()->getRXPower());
     Serial.println(" dBm");
+    */
 }
 
 void newBlink(DW1000Device *device)

@@ -49,6 +49,17 @@ void setup()
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
     //define the sketch as anchor. It will be great to dynamically change the type of module
+
+    //Set leds
+    DW1000.enableDebounceClock();
+    DW1000.enableLedBlinking();
+    // enable SFDLED
+    DW1000.setGPIOMode(MSGP1, LED_MODE);
+    // enable GPIO2/RXLED blinking
+    DW1000.setGPIOMode(MSGP2, LED_MODE);
+    // enable GPIO3/TXLED blinking
+    DW1000.setGPIOMode(MSGP3, LED_MODE);
+
     DW1000Ranging.attachNewRange(newRange);
     DW1000Ranging.attachNewDevice(newDevice);
     DW1000Ranging.attachInactiveDevice(inactiveDevice);
@@ -56,9 +67,9 @@ void setup()
     //DW1000Ranging.useRangeFilter(true);
 
     //we start the module as a tag
-    DW1000Ranging.startAsTag("7F:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_RANGE_LOWPOWER);
+    DW1000Ranging.startAsTag("7F:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+    //DW1000.enableManualLedBlinking();
 }
-
 void loop()
 {
     DW1000Ranging.loop();
