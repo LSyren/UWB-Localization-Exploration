@@ -14,7 +14,7 @@ import queue
 import random
 import time
 
-# from uart_source import serial_receive
+from uart_source import serial_receive
 
 
 q = queue.Queue()
