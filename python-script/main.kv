@@ -1,0 +1,56 @@
+#:import utils kivy.utils
+
+# this is a relative layout
+<CanvasWidget>:
+    # size_hint: [0.9, .9]
+    # pos_hint: {'top': .95, 'right': .95}
+    # canvas is a context
+    canvas.before:
+        Color:
+            rgba: (0.8, 0.8, 0.8, 1)
+        Rectangle:
+            size: self.size
+            # don't put
+            # pos: self.pos
+            # that would transform the rectangle relative to the widget
+
+    Widget:
+        pos_hint: {'x': 0.0, 'y': 1.0}
+        canvas.before:
+            Color:
+                rgba: (0.4, 0.8, 0.9, 1)
+            Ellipse:
+                size: 20, 20
+                pos: [self.pos[0] - 10, self.pos[1] - 10]
+
+    Label:
+        text: '(0, 0)'
+
+<MyLayout>:
+    padding: 60, 60, 60, 60
+    orientation: 'vertical'
+
+    canvas.before:
+        Color:
+            rgba: 0.6, 0.6, 0.6, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    # Create instance
+    CanvasWidget
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint: 1.0, 0.2
+        
+        Label:
+            id: lbl_data_per_sec
+            # text_size: self.size
+            text: "Data per second:"
+            halign: 'left'
+            size: self.size
+        Label:
+            halign: 'left'
+            text: "Current position:"
+
