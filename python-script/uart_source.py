@@ -28,8 +28,8 @@ def serial_receive(port: str, q: queue.Queue=None):
             # fifo_write.write(line)
 
             if line:
-                data = line.split(",")
-
+                #data = line.split(",")
+                print("line")
                 if len(data) == 3:
                     data = (float(data[0]), float(data[1]), float(data[2]))
                     if q.qsize() < 24:

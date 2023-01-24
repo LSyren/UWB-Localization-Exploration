@@ -68,6 +68,9 @@ void setup()
     #endif
 
     #ifdef BLUEPILL
+    SPI.setMISO(SPI_MISO);
+	SPI.setMOSI(SPI_MOSI);
+	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
@@ -90,7 +93,7 @@ void setup()
     //DW1000Ranging.useRangeFilter(true);
 
     //we start the module as a tag
-    DW1000Ranging.startAsTag("7F:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+    DW1000Ranging.startAsTag("6A:00:22:EA:82:60:3B:9C", DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
     //DW1000.enableManualLedBlinking();
 }
 void loop()

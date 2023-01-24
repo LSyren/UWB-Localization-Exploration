@@ -1,12 +1,14 @@
 /*
 Makerfabs ESP32 UWB DW1000,
-Anchor code, for communication with single tag.
+Anchor code, for communication with tag/tags.
 */
 
 #include <SPI.h>
 #include "DW1000Ranging.h"
 
-#define ANCHOR_ADD "87:17:5B:D5:A9:9A:E2:9C"
+#define ANCHOR_ADD "86:17:5B:D5:A9:9A:E2:9C"
+
+#define ANTENNA_DELAY 16600
 
 #ifdef MAKERFABS
 
@@ -70,8 +72,12 @@ void setup()
     #endif
 
     #ifdef BLUEPILL
+    SPI.setMISO(SPI_MISO);
+	SPI.setMOSI(SPI_MOSI);
+	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
+    DW1000.setAntennaDelay(ANTENNA_DELAY);
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
 
     //Set leds

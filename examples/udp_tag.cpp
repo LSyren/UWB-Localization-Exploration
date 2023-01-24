@@ -31,9 +31,9 @@ const uint8_t PIN_SS = PB12;   // spi select pin
 
 #endif
 
-const char *ssid = "xxxx";
-const char *password = "xxxxx";
-const char *host = "xxxx";
+const char *ssid = "";
+const char *password = "";
+const char *host = "";
 WiFiClient client;
 
 struct MyLink *uwb_data;
