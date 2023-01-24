@@ -1,214 +1,87 @@
+from turtle import *
+import serial
 import time
-import turtle
-import cmath
-import socket
-import json
 
-hostname = socket.gethostname()
-#UDP_IP = socket.gethostbyname(hostname)
-UDP_IP = "0.0.0.0"
-print("***Local ip:" + str(UDP_IP) + "***")
-UDP_PORT = 80
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind((UDP_IP, UDP_PORT))
-sock.listen(1)
-sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-data, addr = sock.accept()
+'''
+skapa en turtle scen
+While true
+* Samla id och range
+* Loopa över all id
 
-distance_a1_a2 = 1.0
-meter2pixel = 100
-range_offset = 0.9
+* Uppdatera en turtle med fix vinkel och radiellt avstånd baserat på range
+* 
 
-
-def screen_init(width=1200, height=800, t=turtle):
-    t.setup(width, height)
-    t.tracer(False)
-    t.hideturtle()
-    t.speed(0)
-
-
-def turtle_init(t=turtle):
-    t.hideturtle()
-    t.speed(0)
-
-
-def draw_line(x0, y0, x1, y1, color="black", t=turtle):
-    t.pencolor(color)
-
-    t.up()
-    t.goto(x0, y0)
-    t.down()
-    t.goto(x1, y1)
-    t.up()
-
-
-def draw_fastU(x, y, length, color="black", t=turtle):
-    draw_line(x, y, x, y + length, color, t)
-
-
-def draw_fastV(x, y, length, color="black", t=turtle):
-    draw_line(x, y, x + length, y, color, t)
-
-
-def draw_cycle(x, y, r, color="black", t=turtle):
-    t.pencolor(color)
-
-    t.up()
-    t.goto(x, y - r)
-    t.setheading(0)
-    t.down()
-    t.circle(r)
-    t.up()
-
-
-def fill_cycle(x, y, r, color="black", t=turtle):
-    t.up()
-    t.goto(x, y)
-    t.down()
-    t.dot(r, color)
-    t.up()
-
-
-def write_txt(x, y, txt, color="black", t=turtle, f=('Arial', 12, 'normal')):
-
-    t.pencolor(color)
-    t.up()
-    t.goto(x, y)
-    t.down()
-    t.write(txt, move=False, align='left', font=f)
-    t.up()
-
-
-def draw_rect(x, y, w, h, color="black", t=turtle):
-    t.pencolor(color)
-
-    t.up()
-    t.goto(x, y)
-    t.down()
-    t.goto(x + w, y)
-    t.goto(x + w, y + h)
-    t.goto(x, y + h)
-    t.goto(x, y)
-    t.up()
-
-
-def fill_rect(x, y, w, h, color=("black", "black"), t=turtle):
-    t.begin_fill()
-    draw_rect(x, y, w, h, color, t)
-    t.end_fill()
-    pass
-
-
-def clean(t=turtle):
-    t.clear()
-
-
-def draw_ui(t):
-    print("draw:ui")
-    write_txt(-300, 250, "UWB Positon", "black",  t, f=('Arial', 32, 'normal'))
-    fill_rect(-400, 200, 800, 40, "black", t)
-    write_txt(-50, 205, "WALL", "yellow",  t, f=('Arial', 24, 'normal'))
-
-
-def draw_uwb_anchor(x, y, txt, range, t):
-    r = 20
-    fill_cycle(x, y, r, "green", t)
-    write_txt(x + r, y, txt + ": " + str(range) + "M",
-              "black",  t, f=('Arial', 16, 'normal'))
-
-
-def draw_uwb_tag(x, y, txt, t):
-    pos_x = -250 + int(x * meter2pixel)
-    pos_y = 150 - int(y * meter2pixel)
-    r = 20
-    fill_cycle(pos_x, pos_y, r, "blue", t)
-    write_txt(pos_x, pos_y, txt + ": (" + str(x) + "," + str(y) + ")",
-              "black",  t, f=('Arial', 16, 'normal'))
-
-
-def read_data():
-
-    line = data.recv(1024).decode('UTF-8')
-
-    uwb_list = []
-
-    try:
-        uwb_data = json.loads(line)
-        print(uwb_data)
-
-        uwb_list = uwb_data["links"]
-        for uwb_archor in uwb_list:
-            print(uwb_archor)
-
-    except:
-        print(line)
-    print("")
-
-    return uwb_list
-
-
-def tag_pos(a, b, c):
-    # p = (a + b + c) / 2.0
-    # s = cmath.sqrt(p * (p - a) * (p - b) * (p - c))
-    # y = 2.0 * s / c
-    # x = cmath.sqrt(b * b - y * y)
-    cos_a = (b * b + c*c - a * a) / (2 * b * c)
-    x = b * cos_a
-    y = b * cmath.sqrt(1 - cos_a * cos_a)
-
-    return round(x.real, 1), round(y.real, 1)
-
-
-def uwb_range_offset(uwb_range):
-
-    temp = uwb_range
-    return temp
-
-
-def main():
-
-    t_ui = turtle.Turtle()
-    t_a1 = turtle.Turtle()
-    t_a2 = turtle.Turtle()
-    t_a3 = turtle.Turtle()
-    turtle_init(t_ui)
-    turtle_init(t_a1)
-    turtle_init(t_a2)
-    turtle_init(t_a3)
-
-    a1_range = 0.0
-    a2_range = 0.0
-
-    draw_ui(t_ui)
-
+'''
+scale = 100
+tags = {}
+turtle_tags = {}
+def serial_receive(port: str):
+    # init_fifo(FIFO)
+    setup(1100,1100)
+    turtle1 = Turtle()
+    turtle2 = Turtle()
+    turtle1.speed(0)
+    turtle2.speed(0)
+    begin_fill()
+    turtle1.pen(pencolor='red',pensize=2)
+    turtle1.penup()
+    turtle1.goto(0,-5*10)
+    turtle1.pendown()
+    turtle1.circle(5*10)
+    turtle1.hideturtle()
+    turtle2.penup()
+    turtle2.goto(0,-5*100)
+    turtle2.pendown()
+    turtle2.circle(5*100)
+    turtle2.hideturtle()
+    hideturtle()
+    i = 0
+    '''
     while True:
-        node_count = 0
-        list = read_data()
+        with serial.Serial(port, 115200, timeout=2) as ser:
+            turtle3.penup()
+            line = ser.readline().decode("utf-8")
+            id = line.split("\t")[0].strip("ID: ")
+            id = "  " + str(id) + "  "
+            distance = float(line.split("\t")[1].strip("Distance: "))
+            i+=1
+            if i==10:
+                turtle3.clear()
+                turtle3.write(str(id), move=False, align='right', font=('Comic sans', 12, 'normal'))
+            elif i==20:
+                turtle3.clear()
+                turtle3.write(str(id), move=False, align='right', font=('Comic sans', 12, 'normal'))
+                i = 0
+            turtle3.sety(100*distance)
+    '''
+    while True:
+        with serial.Serial(port, 115200, timeout=2) as ser:
+            line = ser.readline().decode("utf-8")
+            print(line)
+            id = line.split("\t")[0].strip("ID: ")
+            distance = float(line.split("\t")[1].strip("Distance: "))
+            tags[id] = float(distance)
+            if id not in turtle_tags.keys():
+                t = Turtle(shape="circle")
+                t.penup()
+                t.setheading(len(turtle_tags)*45)
+                turtle_tags[id] = t
+            if len(turtle_tags) >= 0:
+                for key in tags.keys():
+                    turtle3 = turtle_tags[key]
+                    distance = tags[key]
+                    if i == 10:
+                        turtle3.clear()
+                        turtle3.write('  '+key+'  ', move=False, align='right',
+                                    font=('Comic sans', 12, 'normal'))
+                    elif i == 20:
+                        turtle3.clear()
+                        turtle3.write('  '+key+'  ', move=False, align='right',
+                                    font=('Comic sans', 12, 'normal'))
+                        i = 0
+                        turtle3.sety(100*distance)
+            i += 1
 
-        for one in list:
-            if one["A"] == "1786":
-                clean(t_a1)
-                a1_range = uwb_range_offset(float(one["R"]))
-                draw_uwb_anchor(-250, 150, "A1786(0,0)", a1_range, t_a1)
-                node_count += 1
-
-            if one["A"] == "1787":
-                clean(t_a2)
-                a2_range = uwb_range_offset(float(one["R"]))
-                draw_uwb_anchor(-250 + meter2pixel * distance_a1_a2,
-                                150, "A1787(" + str(distance_a1_a2)+")", a2_range, t_a2)
-                node_count += 1
-
-        if node_count == 2:
-            x, y = tag_pos(a2_range, a1_range, distance_a1_a2)
-            print(x, y)
-            clean(t_a3)
-            draw_uwb_tag(x, y, "TAG", t_a3)
-
-        time.sleep(0.1)
-
-    turtle.mainloop()
 
 
-if __name__ == '__main__':
-    main()
+serial_receive("/dev/ttyUSB0")
