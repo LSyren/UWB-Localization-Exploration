@@ -8,7 +8,7 @@ Anchor code, for communication with tag/tags.
 
 #define ANCHOR_ADD "86:17:5B:D5:A9:9A:E2:9C"
 
-#define ANTENNA_DELAY 16600
+#define ANTENNA_DELAY 16514
 
 #ifdef MAKERFABS
 
@@ -39,11 +39,14 @@ const uint8_t PIN_SS = PB12;   // spi select pin
 
 void newRange()
 {
-    Serial.print("ID: ");
-    Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
-    Serial.print("\t Distance: ");
-    Serial.print(DW1000Ranging.getDistantDevice()->getRange());
-    Serial.println();
+    if (abs(DW1000Ranging.getDistantDevice()->getRange()) > 0.3) 
+    {
+        Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
+        Serial.print(":");
+        Serial.print(DW1000Ranging.getDistantDevice()->getRange());
+
+        Serial.flush();
+    }
     /*
     Serial.print(" m");
     Serial.print("\t RX power: ");
@@ -54,19 +57,15 @@ void newRange()
 
 void newBlink(DW1000Device *device)
 {
-    /*
-    Serial.print("blink; 1 device added ! -> ");
-    Serial.print(" short:");
-    Serial.println(device->getShortAddress(), HEX);
-    */
+    //Serial.print("blink; 1 device added ! -> ");
+    //Serial.print(" short:");
+    //Serial.println(device->getShortAddress(), HEX);
 }
 
 void inactiveDevice(DW1000Device *device)
 {
-    /*
-    Serial.print("delete inactive device: ");
-    Serial.println(device->getShortAddress(), HEX);
-    */
+    //Serial.print("delete inactive device: ");
+    //Serial.println(device->getShortAddress(), HEX);
 }
 
 void setup()
@@ -107,7 +106,7 @@ void setup()
     //we start the module as an anchor
     // DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
 
-    DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+    DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
     // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_SHORTDATA_FAST_LOWPOWER);
     // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_FAST_LOWPOWER);
     // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_SHORTDATA_FAST_ACCURACY);
