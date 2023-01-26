@@ -42,26 +42,29 @@ def serial_receive(port: str):
     turtle2.position
     hideturtle()
 
-    turtle3 = Turtle(shape="circle")
-    i = 0
-
     while True:
         with serial.Serial(port, 115200, timeout=2) as ser:
-            turtle3.penup()
             line = ser.readline().decode("utf-8")
-            id = line.split("\t")[0].strip("ID: ")
-            id = "  " + str(id) + "  "
-            distance = float(line.split("\t")[1].strip("Distance: "))
-            i+=1
-            if i==10:
-                turtle3.clear()
-                turtle3.write(str(id), move=False, align='right', font=('Comic sans', 12, 'normal'))
-            elif i==20:
-                turtle3.clear()
-                turtle3.write(str(id), move=False, align='right', font=('Comic sans', 12, 'normal'))
-                i = 0
-            turtle3.sety(100*distance)
-
+            if line != '':
+                (id, distance) = line.split(":")
+                tags[id] = float(distance)
+                if id not in turtle_tags.keys():
+                    nr_turtles = len(turtle_tags)
+                    t = Turtle(shape="circle")
+                    t.penup()
+                    # t.setheading(len(turtle_tags)*180)
+                    t.setposition(direction[nr_turtles]
+                              * float(distance)*scale, 0)
+                    turtle_tags[id] = (t, direction[nr_turtles])
+                for key in tags.keys():
+                    (turtle3, d) = turtle_tags[key]
+                    distance = tags[key]
+                    turtle3.clear()
+                    turtle3.write('  '+key+'  ', move=False, align='right',
+                              font=('Comic sans', 12, 'normal'))
+                    turtle3.setx(d*scale*distance)
+                    if (distance < (0.4)):
+                        turtle3.goto(0, 0)
 
 
 
