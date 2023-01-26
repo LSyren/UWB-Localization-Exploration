@@ -45,6 +45,7 @@ def serial_receive(port: str):
     while True:
         with serial.Serial(port, 115200, timeout=2) as ser:
             line = ser.readline().decode("utf-8")
+            print(line)
             if line != '':
                 (id, distance) = line.split(":")
                 tags[id] = float(distance)
