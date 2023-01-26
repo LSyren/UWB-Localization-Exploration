@@ -8,10 +8,11 @@ import time
 
 FIFO = 'serial.fifo'
 
+# four byte header to split messages
 # one byte of tag ID
 # four bytes of distance - 15000 = 1.5 * 10000 = 0x00_00_3a_98
 # sent LSB first
-EXPECTED_DATA = bytes((0xFA, 0x98, 0x3a, 0x0, 0x0))
+EXPECTED_DATA = bytes((0xFF, 0xFF, 0xFF, 0xFF, 0xFA, 0x98, 0x3a, 0x0, 0x0))
 
 
 def init_fifo(file_name: str):

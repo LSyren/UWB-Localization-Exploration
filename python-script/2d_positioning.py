@@ -13,12 +13,14 @@ import threading
 import queue
 import random
 import time
+import sys
+import os
+import collections
 
 from uart_source import serial_receive
 
 
 q = queue.Queue()
-PORT = "/dev/ttyACM0"
 
 SPACE_SIZE_X = 4.5
 SPACE_SIZE_Y = 5.0
@@ -64,10 +66,10 @@ class CanvasWidget(RelativeLayout):
         self.agent = Agent(pos=self.pos, size=(30, 30))
         self.add_widget(self.agent)
 
-        self.i = 0
         self.samples_count = 5
-        self.buf_x = [0] * self.samples_count
-        self.buf_y = [0] * self.samples_count
+
+        self.buf_x = collections.deque(maxlen=self.samples_count)
+        self.buf_y = collections.deque(maxlen=self.samples_count)
 
         Clock.schedule_interval(self.update, 1.0/60.0)
 
@@ -77,8 +79,8 @@ class CanvasWidget(RelativeLayout):
             while not q.empty():
                 data = q.get(block=False)
                 if len(data) == 3:
-                    self.buf_x[self.i] = data[0]
-                    self.buf_y[self.i] = data[1]
+                    self.buf_x.append(data[0])
+                    self.buf_y.append(data[1])
 
                     data_avg[0] = sum(self.buf_x) / self.samples_count
                     data_avg[1] = sum(self.buf_y) / self.samples_count
@@ -86,10 +88,6 @@ class CanvasWidget(RelativeLayout):
                     y = (data_avg[1] / SPACE_SIZE_Y) * self.size[1]
 
                     self.agent.move_to((x, y))
-
-                    self.i += 1
-                    if self.i >= self.samples_count:
-                        self.i = 0
         except queue.Empty:
             pass
 
@@ -140,6 +138,15 @@ def dummy_source(q):
         time.sleep(0.01)
 
 
+# if len(sys.argv) <= 1:
+#     print("")
+#     print("Please put the path to the serial port as an argument:")
+#     print("")
+#     print(f"\tpython3 {os.path.basename(__file__)} /dev/ttyUSB0")
+#     sys.exit(1)
+
+
+# PORT = sys.argv[1]
 thr_recv = threading.Thread(target=dummy_source, args=(q,), daemon=True)
 thr_recv.start()
 
