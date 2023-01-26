@@ -1,0 +1,3 @@
+[submodule "lib/arduino-dw1000"]
+	path = lib/arduino-dw1000
+	url = https://github.com/thotro/arduino-dw1000
