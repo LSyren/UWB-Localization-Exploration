@@ -70,6 +70,9 @@ void setup()
     #endif
 
     #ifdef BLUEPILL
+    SPI.setMISO(SPI_MISO);
+	SPI.setMOSI(SPI_MOSI);
+	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin

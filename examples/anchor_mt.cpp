@@ -74,6 +74,9 @@ void setup()
     #endif
 
     #ifdef BLUEPILL
+    SPI.setMISO(SPI_MISO);
+	SPI.setMOSI(SPI_MOSI);
+	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
 
