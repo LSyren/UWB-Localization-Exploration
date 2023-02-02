@@ -67,7 +67,7 @@
 
 //debug mode
 #ifndef DEBUG
-#define DEBUG false
+#define DEBUG true
 #endif
 
 
@@ -101,6 +101,7 @@ public:
 	//ranging functions
 	static int16_t detectMessageType(byte datas[]); // TODO check return type
 	static void loop();
+	static void transmitBlink();
 	static void useRangeFilter(boolean enabled);
 	// Used for the smoothing algorithm (Exponential Moving Average). newValue must be >= 2. Default 15.
 	static void setRangeFilterValue(uint16_t newValue);
@@ -190,7 +191,6 @@ private:
 	static void transmitInit();
 	static void transmit(byte datas[]);
 	static void transmit(byte datas[], DW1000Time time);
-	static void transmitBlink();
 	static void transmitRangingInit(DW1000Device* myDistantDevice);
 	static void transmitPollAck(DW1000Device* myDistantDevice);
 	static void transmitRangeReport(DW1000Device* myDistantDevice);

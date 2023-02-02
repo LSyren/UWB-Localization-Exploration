@@ -120,6 +120,8 @@ void DW1000Class::end() {
 }
 
 void DW1000Class::select(uint8_t ss) {
+	_deviceMode = IDLE_MODE;
+	delay(5);
 	reselect(ss);
 	// try locking clock at PLL speed (should be done already,
 	// but just to be sure)
@@ -172,9 +174,6 @@ void DW1000Class::begin(uint8_t irq, uint8_t rst) {
     	pinMode(irq, INPUT);
 	// start SPI
 	SPI.begin();
-//#ifndef ESP8266
-//	SPI.usingInterrupt(digitalPinToInterrupt(irq)); // not every board support this, e.g. ESP8266
-//#endif
 	// pin and basic member setup
 	_rst        = rst;
 	_irq        = irq;
@@ -303,6 +302,30 @@ void DW1000Class::spiWakeup(){
         }
 }
 
+void DW1000Class::softReset() {
+	/*
+	Necessary?????
+	_disableSequencing();
+	// Clear AON and WakeUp configuration
+	_writeValueToRegister(AON, AON_WCFG_SUB, 0x00, LEN_AON_WCFG);
+	_writeValueToRegister(AON, AON_CFG0_SUB, 0x00, LEN_AON_CFG0);
+	// TODO change this with uploadToAON
+	_writeValueToRegister(AON, AON_CTRL_SUB, 0x00, LEN_AON_CTRL);
+	_writeValueToRegister(AON, AON_CTRL_SUB, 0x02, LEN_AON_CTRL);
+	*/
+	byte pmscctrl0[LEN_PMSC_CTRL0];
+	readBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
+	pmscctrl0[0] = 0x01;
+	writeBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
+	pmscctrl0[3] = 0x00;
+	writeBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
+	delay(10);
+	pmscctrl0[0] = 0x00;
+	pmscctrl0[3] = 0xF0;
+	writeBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
+	// force into idle mode
+	idle();
+}
 
 void DW1000Class::reset() {
 	if(_rst == 0xff) {
@@ -317,21 +340,6 @@ void DW1000Class::reset() {
 		// force into idle mode (although it should be already after reset)
 		idle();
 	}
-}
-
-void DW1000Class::softReset() {
-	byte pmscctrl0[LEN_PMSC_CTRL0];
-	readBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
-	pmscctrl0[0] = 0x01;
-	writeBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
-	pmscctrl0[3] = 0x00;
-	writeBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
-	delay(10);
-	pmscctrl0[0] = 0x00;
-	pmscctrl0[3] = 0xF0;
-	writeBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
-	// force into idle mode
-	idle();
 }
 
 void DW1000Class::enableMode(const byte mode[]) {
@@ -1278,12 +1286,12 @@ void DW1000Class::setDefaults() {
 		//setFrameFilterAllowBeacon(true);
 		//setFrameFilterAllowAcknowledgement(true);
 		*/
-		interruptOnSent(true);
-		interruptOnReceived(true);
-		interruptOnReceiveFailed(true);
+		interruptOnSent(false);
+		interruptOnReceived(false);
+		interruptOnReceiveFailed(false);
 		interruptOnReceiveTimestampAvailable(false);
-		interruptOnAutomaticAcknowledgeTrigger(true);
-		setReceiverAutoReenable(true);
+		interruptOnAutomaticAcknowledgeTrigger(false);
+		setReceiverAutoReenable(false);
 		// default mode when powering up the chip
 		// still explicitly selected for later tuning
 		enableMode(MODE_LONGDATA_RANGE_LOWPOWER);
@@ -1454,6 +1462,8 @@ void DW1000Class::getSystemTimestamp(byte data[]) {
 }
 
 boolean DW1000Class::isTransmitDone() {
+	Serial.print("TXFRS BIT: ");
+	Serial.println(TXFRS_BIT);
 	return getBit(_sysstatus, LEN_SYS_STATUS, TXFRS_BIT);
 }
 

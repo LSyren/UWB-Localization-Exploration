@@ -18,6 +18,8 @@ const uint8_t PIN_RST = 27; // reset pin
 const uint8_t PIN_IRQ = 34; // irq pin
 const uint8_t PIN_SS = 4;   // spi select pin
 
+int16_t sentNum = 0; // todo check int type
+
 #endif
 
 #ifdef BLUEPILL
@@ -58,6 +60,11 @@ void inactiveDevice(DW1000Device *device)
     Serial.println(device->getShortAddress(), HEX);
 }
 
+void transmit()
+{
+    DW1000Ranging.transmitBlink();
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -73,7 +80,7 @@ void setup()
 	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
-    DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
+    DW1000Ranging.initCommunication(0xff, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
     //define the sketch as anchor. It will be great to dynamically change the type of module
 
     //Set leds

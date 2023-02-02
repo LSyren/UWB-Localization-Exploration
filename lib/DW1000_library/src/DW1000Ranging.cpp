@@ -100,7 +100,7 @@ void DW1000RangingClass::initCommunication(uint8_t myRST, uint8_t mySS, uint8_t 
 	_timerDelay       = DEFAULT_TIMER_DELAY;
 	
 	
-	DW1000.begin(myIRQ, myRST);
+	//DW1000.begin(myIRQ, myRST);
 	DW1000.select(mySS);
 }
 
@@ -382,6 +382,7 @@ void DW1000RangingClass::loop() {
 	}
 	
 	if(_sentAck) {
+		Serial.println("_sentAck true");
 		_sentAck = false;
 		
 		// TODO cc
@@ -446,6 +447,7 @@ void DW1000RangingClass::loop() {
 	
 	//check for new received message
 	if(_receivedAck) {
+		Serial.println("_receivedAck true");
 		_receivedAck = false;
 		
 		//we read the datas from the modules:

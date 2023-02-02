@@ -75,7 +75,7 @@ void setup()
 	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
-    DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
+    DW1000Ranging.initCommunication(0xff, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
 
     //Set leds
     DW1000.enableDebounceClock();
