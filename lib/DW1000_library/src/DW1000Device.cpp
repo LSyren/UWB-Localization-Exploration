@@ -130,6 +130,7 @@ void DW1000Device::randomShortAddress() {
 
 void DW1000Device::noteActivity() {
 	_activity = millis();
+	Serial.println("_activity");
 }
 
 

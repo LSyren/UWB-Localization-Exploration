@@ -118,6 +118,7 @@ void DW1000RangingClass::configureNetwork(uint16_t deviceAddress, uint16_t netwo
 
 void DW1000RangingClass::generalStart() {
 	// attach callback for (successfully) sent and received messages
+	//Needs to be changed to not be invoked by interrupt
 	DW1000.attachSentHandler(handleSent);
 	DW1000.attachReceivedHandler(handleReceived);
 	// anchor starts in receiving mode, awaiting a ranging poll message
@@ -215,7 +216,7 @@ void DW1000RangingClass::startAsTag(char address[], const byte mode[], const boo
 	//(device Address, network ID, frequency)
 	DW1000Ranging.configureNetwork(_currentShortAddress[0]*256+_currentShortAddress[1], 0xDECA, mode);
 	
-	generalStart();
+	generalStart(); //????????? Shouldn't it be only for anchor?
 	//defined type as tag
 	_type = TAG;
 	
@@ -381,10 +382,8 @@ void DW1000RangingClass::loop() {
 		timerTick();
 	}
 	
-	if(_sentAck) {
-		Serial.println("_sentAck true");
-		_sentAck = false;
-		
+	if(DW1000.isTransmitDone()) {
+		DW1000.clearTransmitStatus();
 		// TODO cc
 		int messageType = detectMessageType(data);
 		
@@ -442,12 +441,11 @@ void DW1000RangingClass::loop() {
 				
 			}
 		}
-		
 	}
 	
 	//check for new received message
-	if(_receivedAck) {
-		Serial.println("_receivedAck true");
+	if(DW1000.isReceiveDone) {
+		DW1000.clearReceiveStatus();
 		_receivedAck = false;
 		
 		//we read the datas from the modules:
@@ -465,6 +463,7 @@ void DW1000RangingClass::loop() {
 			DW1000Device myTag(address, shortAddress);
 			
 			if(addNetworkDevices(&myTag)) {
+				Serial.println("hej");
 				if(_handleBlinkDevice != 0) {
 					(*_handleBlinkDevice)(&myTag);
 				}
@@ -717,6 +716,7 @@ void DW1000RangingClass::handleReceived() {
 void DW1000RangingClass::noteActivity() {
 	// update activity timestamp, so that we do not reach "resetPeriod"
 	_lastActivity = millis();
+	Serial.println("Note activity");
 }
 
 void DW1000RangingClass::resetInactive() {
@@ -738,10 +738,42 @@ void DW1000RangingClass::timerTick() {
 	}
 	else if(counterForBlink == 0) {
 		if(_type == TAG) {
+			Serial.println("Generates blink");
 			transmitBlink();
 		}
+		/*
+		else if (_type == ANCHOR)
+		{
+			Serial.println("Scan for blinks");
+			DW1000.getData(data, LEN_DATA);
+			int messageType = detectMessageType(data);
+			Serial.println(messageType);
+			if (messageType == BLINK)
+			{
+				byte address[8];
+				byte shortAddress[2];
+				_globalMac.decodeBlinkFrame(data, address, shortAddress);
+				// we crate a new device with th tag
+				DW1000Device myTag(address, shortAddress);
+
+				if (addNetworkDevices(&myTag))
+				{
+					if (_handleBlinkDevice != 0)
+					{
+						(*_handleBlinkDevice)(&myTag);
+					}
+					// we reply by the transmit ranging init message
+					transmitRangingInit(&myTag);
+					Serial.println("note activity");
+					noteActivity();
+				}
+				_expectedMsgId = POLL;
+			}
+
+		}
+		*/
 		//check for inactive devices if we are a TAG or ANCHOR
-		checkForInactiveDevices();
+		//checkForInactiveDevices();
 	}
 	counterForBlink++;
 	if(counterForBlink > 20) {

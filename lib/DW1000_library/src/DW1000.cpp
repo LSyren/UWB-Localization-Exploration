@@ -120,8 +120,6 @@ void DW1000Class::end() {
 }
 
 void DW1000Class::select(uint8_t ss) {
-	_deviceMode = IDLE_MODE;
-	delay(5);
 	reselect(ss);
 	// try locking clock at PLL speed (should be done already,
 	// but just to be sure)
@@ -1462,8 +1460,6 @@ void DW1000Class::getSystemTimestamp(byte data[]) {
 }
 
 boolean DW1000Class::isTransmitDone() {
-	Serial.print("TXFRS BIT: ");
-	Serial.println(TXFRS_BIT);
 	return getBit(_sysstatus, LEN_SYS_STATUS, TXFRS_BIT);
 }
 
