@@ -3,3 +3,11 @@
 - the BLINK and RANGE INIT messages aren't part of the ranging procedure, just the initial setup
 - POLL message communicates the transmit delay value used in subsequent messages
 - POLL ACK, RANGE, RANGE REPORT are all transmitted with a delay transmit operation
+
+### Build and upload commands
+
+To build the STM32 based Bluepill board version run:
+
+```sh
+pio run -e bluepill_f103c8 -t upload
+```
