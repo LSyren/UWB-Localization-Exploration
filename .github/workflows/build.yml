@@ -16,3 +16,5 @@ jobs:
         pio project config
         pio run -e bp_tag
         pio run -e bp_anchor
+        pio run -e esp_tag
+        pio run -e esp_anchor
