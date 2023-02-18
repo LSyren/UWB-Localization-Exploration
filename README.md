@@ -6,8 +6,14 @@
 
 ### Build and upload commands
 
-To build the STM32 based Bluepill board version run:
+To build the STM32 based Bluepill board version, acting as TAG, run:
 
 ```sh
-pio run -e bluepill_f103c8 -t upload
+pio run -e bp_tag -t upload
+```
+
+If you want it to act as an ANCHOR run:
+
+```sh
+pio run -e bp_anchor -t upload
 ```
