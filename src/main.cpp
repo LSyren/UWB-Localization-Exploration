@@ -82,12 +82,19 @@ void setup()
     //Set leds
     DW1000.enableDebounceClock();
     DW1000.enableLedBlinking();
+    // enable RXOKLED
+    DW1000.setGPIOMode(MSGP0, LED_MODE);
     // enable SFDLED
     DW1000.setGPIOMode(MSGP1, LED_MODE);
     // enable GPIO2/RXLED blinking
     DW1000.setGPIOMode(MSGP2, LED_MODE);
     // enable GPIO3/TXLED blinking
     DW1000.setGPIOMode(MSGP3, LED_MODE);
+
+    // enable EXTTXE - TX antenna activity
+    DW1000.setGPIOMode(MSGP5, LED_MODE);
+    // enable EXTRXE - RX antenna activity
+    DW1000.setGPIOMode(MSGP6, LED_MODE);
 
     //define the sketch as anchor. It will be great to dynamically change the type of module
     DW1000Ranging.attachNewRange(newRange);
