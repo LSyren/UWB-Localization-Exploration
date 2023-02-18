@@ -12,6 +12,7 @@ jobs:
       run: |
         python3 -c "$(curl -fsSL https://raw.githubusercontent.com/platformio/platformio/master/scripts/get-platformio.py)"
         source /home/runner/.platformio/penv/bin/activate
+        pio upgrade --dev
         pio project config
         pio run -e bp_tag
         pio run -e bp_anchor
