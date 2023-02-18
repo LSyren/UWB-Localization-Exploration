@@ -6,7 +6,11 @@ Anchor code, for communication with single tag.
 #include <SPI.h>
 #include "DW1000Ranging.h"
 
-#define ANCHOR_ADD "87:17:5B:D5:A9:9A:E2:9C"
+#if defined(UWB_TAG)
+#define ADDR_TAG "87:17:5B:D5:A9:9A:E2:9C"
+#elif defined(UWB_ANCHOR)
+#define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
+#endif
 
 #ifdef MAKERFABS
 
@@ -64,14 +68,15 @@ void setup()
 {
     Serial.begin(115200);
     delay(1000);
+
     //init the configuration
     #ifdef MAKERFABS
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     #endif
-
     #ifdef BLUEPILL
     SPI.begin(115200);
     #endif
+
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
 
     //Set leds
@@ -94,12 +99,16 @@ void setup()
     //we start the module as an anchor
     // DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
 
-    DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
-    // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_SHORTDATA_FAST_LOWPOWER);
-    // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_FAST_LOWPOWER);
-    // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_SHORTDATA_FAST_ACCURACY);
-    // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_FAST_ACCURACY);
-    // DW1000Ranging.startAsAnchor(ANCHOR_ADD, DW1000.MODE_LONGDATA_RANGE_ACCURACY);
+#if defined(UWB_ANCHOR)
+    DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+#elif defined(UWB_TAG)
+    DW1000Ranging.startAsTag(ADDR_TAG, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+#endif
+    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_LOWPOWER);
+    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_FAST_LOWPOWER);
+    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_ACCURACY);
+    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_FAST_ACCURACY);
+    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_RANGE_ACCURACY);
 }
 
 void loop()
