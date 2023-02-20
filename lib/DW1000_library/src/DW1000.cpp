@@ -1114,7 +1114,8 @@ void DW1000Class::useSmartPower(boolean smartPower) {
 	setBit(_syscfg, LEN_SYS_CFG, DIS_STXP_BIT, !smartPower);
 }
 
-DW1000Time DW1000Class::setDelay(const DW1000Time& delay) {
+DW1000Time DW1000Class::setDelayFrom(const DW1000Time& from, const DW1000Time& delay) {
+  // Enable delayed transmit and receive.
 	if(_deviceMode == TX_MODE) {
 		setBit(_sysctrl, LEN_SYS_CTRL, TXDLYS_BIT, true);
 	} else if(_deviceMode == RX_MODE) {
@@ -1123,9 +1124,9 @@ DW1000Time DW1000Class::setDelay(const DW1000Time& delay) {
 		// in idle, ignore
 		return DW1000Time();
 	}
+
 	byte       delayBytes[5];
-	DW1000Time futureTime;
-	getSystemTimestamp(futureTime);
+	DW1000Time futureTime = DW1000Time(from);
 	futureTime += delay;
 	futureTime.getTimestamp(delayBytes);
 	delayBytes[0] = 0;
@@ -1142,6 +1143,12 @@ DW1000Time DW1000Class::setDelay(const DW1000Time& delay) {
 	futureTime.setTimestamp(delayBytes);
 	futureTime += _antennaDelay;
 	return futureTime;
+}
+
+DW1000Time DW1000Class::setDelay(const DW1000Time& delay) {
+	DW1000Time sysTime;
+	getSystemTimestamp(sysTime);
+	return setDelayFrom(sysTime, delay);
 }
 
 
