@@ -1,7 +1,7 @@
 /*
- 
+
  last update 2/20/2022 sjr
- 
+
  * Copyright (c) 2015 by Thomas Trojer <thomas@trojer.net>
  * Decawave DW1000 library for arduino.
  *
@@ -149,7 +149,7 @@ void DW1000Class::select(uint8_t ss) {
 	delay(5);
 	enableClock(AUTO_CLOCK);
 	delay(5);
-	
+
 	// read the temp and vbat readings from OTP that were recorded during production test
 	// see 6.3.1 OTP memory map
 	byte buf_otp[4];
@@ -918,7 +918,7 @@ void DW1000Class::getTempAndVbat(float& temp, float& vbat) {
 	byte step5 = 0x00; writeBytes(TX_CAL, NO_SUB, &step5, 1);
 	byte sar_lvbat = 0; readBytes(TX_CAL, 0x03, &sar_lvbat, 1);
 	byte sar_ltemp = 0; readBytes(TX_CAL, 0x04, &sar_ltemp, 1);
-	
+
 	// calculate voltage and temperature
 	vbat = (sar_lvbat - _vmeas3v3) / 173.0f + 3.3f;
 	temp = (sar_ltemp - _tmeas23C) * 1.14f + 23.0f;
@@ -1130,6 +1130,13 @@ DW1000Time DW1000Class::setDelay(const DW1000Time& delay) {
 	futureTime.getTimestamp(delayBytes);
 	delayBytes[0] = 0;
 	delayBytes[1] &= 0xFE;
+	Serial.print("delayBytes ");
+	Serial.print(delayBytes[4], HEX);
+	Serial.print(delayBytes[3], HEX);
+	Serial.print(delayBytes[2], HEX);
+	Serial.print(delayBytes[1], HEX);
+	Serial.print(delayBytes[0], HEX);
+	Serial.println("");
 	writeBytes(DX_TIME, NO_SUB, delayBytes, LEN_DX_TIME);
 	// adjust expected time with configured antenna delay
 	futureTime.setTimestamp(delayBytes);
@@ -1259,9 +1266,9 @@ void DW1000Class::setPreambleCode(byte preacode) {
 
 void DW1000Class::setDefaults() {
 	if(_deviceMode == TX_MODE) {
-		
+
 	} else if(_deviceMode == RX_MODE) {
-		
+
 	} else if(_deviceMode == IDLE_MODE) {
 		useExtendedFrameLength(false);
 		useSmartPower(false);
@@ -1287,7 +1294,7 @@ void DW1000Class::setDefaults() {
 		// default mode when powering up the chip
 		// still explicitly selected for later tuning
 		enableMode(MODE_LONGDATA_RANGE_LOWPOWER);
-		
+
 		// TODO add channel and code to mode tuples
 	    // TODO add channel and code settings with checks (see DW1000 user manual 10.5 table 61)/
 	    setChannel(CHANNEL_5);
@@ -1377,8 +1384,19 @@ void DW1000Class::getReceiveTimestamp(DW1000Time& time) {
 	byte rxTimeBytes[LEN_RX_STAMP];
 	readBytes(RX_TIME, RX_STAMP_SUB, rxTimeBytes, LEN_RX_STAMP);
 	time.setTimestamp(rxTimeBytes);
+
+  Serial.print("getReceiveTimestamp(DW1000Time& time) ");
+  Serial.print(time.getTimestamp(), HEX);
+  Serial.println("");
+
 	// correct timestamp (i.e. consider range bias)
+	/*
 	correctTimestamp(time);
+
+  Serial.print("getReceiveTimestamp(DW1000Time& time), corrected ");
+  Serial.print(time.getTimestamp(), HEX);
+  Serial.println("");
+  */
 }
 
 // TODO check function, different type violations between byte and int
@@ -1571,6 +1589,7 @@ float DW1000Class::getFirstPathPower() {
 }
 
 float DW1000Class::getReceivePower() {
+  Serial.println("getReceivePower()");
 	byte     cirPwrBytes[LEN_CIR_PWR];
 	byte     rxFrameInfo[LEN_RX_FINFO];
 	uint32_t twoPower17 = 131072;
@@ -1587,13 +1606,18 @@ float DW1000Class::getReceivePower() {
 		A       = 121.74;
 		corrFac = 1.1667;
 	}
-	float estRxPwr = 10.0*log10(((float)C*(float)twoPower17)/((float)N*(float)N))-A;
+	float that_log = log10f(((float)C*(float)twoPower17)/((float)N*(float)N));
+	Serial.print("log10f: ");
+	Serial.println(that_log);
+	float estRxPwr = 10.0 * that_log - A;
 	if(estRxPwr <= -88) {
 		return estRxPwr;
 	} else {
 		// approximation of Fig. 22 in user manual for dbm correction
 		estRxPwr += (estRxPwr+88)*corrFac;
 	}
+	Serial.print("estRxPwr: ");
+	Serial.println(estRxPwr);
 	return estRxPwr;
 }
 
@@ -1616,7 +1640,7 @@ float DW1000Class::getReceivePower() {
 void DW1000Class::setBit(byte data[], uint16_t n, uint16_t bit, boolean val) {
 	uint16_t idx;
 	uint8_t shift;
-	
+
 	idx = bit/8;
 	if(idx >= n) {
 		return; // TODO proper error handling: out of bounds
@@ -1643,14 +1667,14 @@ void DW1000Class::setBit(byte data[], uint16_t n, uint16_t bit, boolean val) {
 boolean DW1000Class::getBit(byte data[], uint16_t n, uint16_t bit) {
 	uint16_t idx;
 	uint8_t  shift;
-	
+
 	idx = bit/8;
 	if(idx >= n) {
 		return false; // TODO proper error handling: out of bounds
 	}
 	byte targetByte = data[idx];
 	shift = bit%8;
-	
+
 	return bitRead(targetByte, shift); // TODO wrong type returned byte instead of boolean
 }
 
@@ -1675,7 +1699,7 @@ void DW1000Class::readBytes(byte cmd, uint16_t offset, byte data[], uint16_t n) 
 	byte header[3];
 	uint8_t headerLen = 1;
 	uint16_t i = 0;
-	
+
 	// build SPI header
 	if(offset == NO_SUB) {
 		header[0] = READ | cmd;
@@ -1707,7 +1731,7 @@ void DW1000Class::readBytes(byte cmd, uint16_t offset, byte data[], uint16_t n) 
 // TODO why always 4 bytes? can be different, see p. 58 table 10 otp memory map
 void DW1000Class::readBytesOTP(uint16_t address, byte data[]) {
 	byte addressBytes[LEN_OTP_ADDR];
-	
+
 	// p60 - 6.3.3 Reading a value from OTP memory
 	// bytes of address
 	addressBytes[0] = (address & 0xFF);
@@ -1746,7 +1770,7 @@ void DW1000Class::writeBytes(byte cmd, uint16_t offset, byte data[], uint16_t da
 	byte header[3];
 	uint8_t  headerLen = 1;
 	uint16_t  i = 0;
-	
+
 	// TODO proper error handling: address out of bounds
 	// build SPI header
 	if(offset == NO_SUB) {

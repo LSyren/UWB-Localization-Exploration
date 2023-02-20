@@ -16,7 +16,7 @@
  * limitations under the License.
  *
  * @file DW1000Time.cpp
- * Arduino driver library timestamp wrapper (source file) for the Decawave 
+ * Arduino driver library timestamp wrapper (source file) for the Decawave
  * DW1000 UWB transceiver IC.
  */
 
@@ -110,7 +110,11 @@ void DW1000Time::setTimestamp(const DW1000Time& copy) {
  * @todo maybe replace by better function without float
  */
 void DW1000Time::setTime(float timeUs) {
+  Serial.print("setTime, timeUs ");
+  Serial.print(timeUs);
 	_timestamp = (int64_t)(timeUs*TIME_RES_INV);
+	Serial.print(", timeUs * TIME_RES_INV ");
+	Serial.println(_timestamp);
 //	_timestamp %= TIME_OVERFLOW; // clean overflow
 }
 
@@ -181,8 +185,8 @@ float DW1000Time::getAsMeters() const {
  * Node N1 sends 999 as timesamp. N2 recieves and sends delayed and increased timestamp back.
  * Delay is 10, so timestamp would be 1009, but due overflow 009 is sent back.
  * Now calculate TOF: 009 - 999 = -990 -> not correct time, so wrap()
- * Wrap calculation: -990 + 1000 = 10 -> correct time 
- * @return 
+ * Wrap calculation: -990 + 1000 = 10 -> correct time
+ * @return
  */
 DW1000Time& DW1000Time::wrap() {
 	if(_timestamp < 0) {
@@ -317,7 +321,7 @@ size_t DW1000Time::printTo(Print& p) const {
 	printed += i;
 	for(; i > 0; i--)
 		p.print((char)(buf[i-1] < 10 ? '0'+buf[i-1] : 'A'+buf[i-1]-10));
-	
+
 	return printed;
 }
 #endif // DW1000Time_H_PRINTABLE

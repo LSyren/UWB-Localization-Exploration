@@ -74,6 +74,9 @@ void setup()
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
     #endif
     #ifdef BLUEPILL
+    SPI.setMISO(SPI_MISO);
+    SPI.setMOSI(SPI_MOSI);
+    SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
 
@@ -94,6 +97,9 @@ void setup()
     // enable EXTTXE - TX antenna activity
     DW1000.setGPIOMode(MSGP5, LED_MODE);
     // enable EXTRXE - RX antenna activity
+    DW1000.setGPIOMode(MSGP6, LED_MODE);
+
+    DW1000.setGPIOMode(MSGP5, LED_MODE);
     DW1000.setGPIOMode(MSGP6, LED_MODE);
 
     //define the sketch as anchor. It will be great to dynamically change the type of module
