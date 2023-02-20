@@ -107,7 +107,7 @@ void setup()
     // DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
 
 #if defined(UWB_ANCHOR)
-    DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
+    DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
 #elif defined(UWB_TAG)
     DW1000Ranging.startAsTag(ADDR_TAG, DW1000.MODE_LONGDATA_RANGE_LOWPOWER, false);
 #endif
