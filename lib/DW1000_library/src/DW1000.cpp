@@ -109,7 +109,7 @@ const byte DW1000Class::BIAS_900_64[] = {147, 133, 117, 99, 75, 50, 29, 0, 24, 4
 	const SPISettings DW1000Class::_fastSPI = SPISettings(16000000L, MSBFIRST, SPI_MODE0);
 #endif
 const SPISettings DW1000Class::_slowSPI = SPISettings(2000000L, MSBFIRST, SPI_MODE0);
-const SPISettings* DW1000Class::_currentSPI = &_fastSPI;
+const SPISettings* DW1000Class::_currentSPI = &_slowSPI;
 
 /* ###########################################################################
  * #### Init and end #######################################################
@@ -217,7 +217,7 @@ void DW1000Class::enableClock(byte clock) {
 	memset(pmscctrl0, 0, LEN_PMSC_CTRL0);
 	readBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
 	if(clock == AUTO_CLOCK) {
-		_currentSPI = &_fastSPI;
+		_currentSPI = &_slowSPI;
 		pmscctrl0[0] = AUTO_CLOCK;
 		pmscctrl0[1] &= 0xFE;
 	} else if(clock == XTI_CLOCK) {
@@ -225,7 +225,7 @@ void DW1000Class::enableClock(byte clock) {
 		pmscctrl0[0] &= 0xFC;
 		pmscctrl0[0] |= XTI_CLOCK;
 	} else if(clock == PLL_CLOCK) {
-		_currentSPI = &_fastSPI;
+		_currentSPI = &_slowSPI;
 		pmscctrl0[0] &= 0xFC;
 		pmscctrl0[0] |= PLL_CLOCK;
 	} else {
