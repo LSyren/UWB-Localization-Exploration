@@ -49,13 +49,11 @@ void newRange()
     if (DW1000Ranging.getDistantDevice()->getRange() < 1.0)
     {
         digitalWrite(DETECTION_PIN, LOW);
-        digitalWrite(LED_BUILTIN, LOW);
         Serial.println("WITHIN");
     }
     else
     {
-        digitalWrite(PA15, HIGH);
-        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(DETECTION_PIN, HIGH);
         Serial.println("OUTSIDE");
     }
 }
@@ -71,8 +69,7 @@ void inactiveDevice(DW1000Device *device)
 {
     Serial.print("delete inactive device: ");
     Serial.println(device->getShortAddress(), HEX);
-    digitalWrite(PA15, HIGH);
-    digitalWrite(LED_BUILTIN, HIGH);
+    digitalWrite(DETECTION_PIN, HIGH);
     Serial.println("LOW, lost device");
 }
 
@@ -114,8 +111,7 @@ void setup()
     DW1000Ranging.startAsTag("7F:00:22:EA:82:60:3B:9C", DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
     //DW1000.enableManualLedBlinking();
 
-    pinMode(PA15, OUTPUT);
-    pinMode(LED_BUILTIN,OUTPUT);
+    pinMode(DETECTION_PIN, OUTPUT);
 }
 void loop()
 {

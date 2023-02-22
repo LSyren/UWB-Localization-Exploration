@@ -217,7 +217,7 @@ void DW1000Class::enableClock(byte clock) {
 	memset(pmscctrl0, 0, LEN_PMSC_CTRL0);
 	readBytes(PMSC, PMSC_CTRL0_SUB, pmscctrl0, LEN_PMSC_CTRL0);
 	if(clock == AUTO_CLOCK) {
-		_currentSPI = &_slowSPI;
+		_currentSPI = &_fastSPI;
 		pmscctrl0[0] = AUTO_CLOCK;
 		pmscctrl0[1] &= 0xFE;
 	} else if(clock == XTI_CLOCK) {
@@ -225,7 +225,7 @@ void DW1000Class::enableClock(byte clock) {
 		pmscctrl0[0] &= 0xFC;
 		pmscctrl0[0] |= XTI_CLOCK;
 	} else if(clock == PLL_CLOCK) {
-		_currentSPI = &_slowSPI;
+		_currentSPI = &_fastSPI;
 		pmscctrl0[0] &= 0xFC;
 		pmscctrl0[0] |= PLL_CLOCK;
 	} else {
