@@ -35,37 +35,6 @@ float this_anchor_target_distance = 296*0.0254; //measured distance to anchor in
 uint16_t this_anchor_Adelay = 16600; //starting value
 uint16_t Adelay_delta = 100; //initial binary search step size
 
-
-void setup()
-{
-  Serial.begin(115200);
-  while (!Serial);
-  //init the configuration
-  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-  DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
-
-
-  Serial.print("Starting Adelay "); Serial.println(this_anchor_Adelay);
-  Serial.print("Measured distance "); Serial.println(this_anchor_target_distance);
-  
-  DW1000.setAntennaDelay(this_anchor_Adelay);
-
-  DW1000Ranging.attachNewRange(newRange);
-  DW1000Ranging.attachNewDevice(newDevice);
-  DW1000Ranging.attachInactiveDevice(inactiveDevice);
-  //Enable the filter to smooth the distance
-  //DW1000Ranging.useRangeFilter(true);
-
-  //start the module as anchor, don't assign random short address
-  DW1000Ranging.startAsAnchor(this_anchor_addr, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
-
-}
-
-void loop()
-{
-  DW1000Ranging.loop();
-}
-
 void newRange()
 {
   static float last_delta = 0.0;
@@ -111,4 +80,35 @@ void inactiveDevice(DW1000Device *device)
 {
   Serial.print("delete inactive device: ");
   Serial.println(device->getShortAddress(), HEX);
+}
+
+
+void setup()
+{
+  Serial.begin(115200);
+  while (!Serial);
+  //init the configuration
+  SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
+  DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
+
+
+  Serial.print("Starting Adelay "); Serial.println(this_anchor_Adelay);
+  Serial.print("Measured distance "); Serial.println(this_anchor_target_distance);
+  
+  DW1000.setAntennaDelay(this_anchor_Adelay);
+
+  DW1000Ranging.attachNewRange(newRange);
+  DW1000Ranging.attachNewDevice(newDevice);
+  DW1000Ranging.attachInactiveDevice(inactiveDevice);
+  //Enable the filter to smooth the distance
+  //DW1000Ranging.useRangeFilter(true);
+
+  //start the module as anchor, don't assign random short address
+  DW1000Ranging.startAsAnchor(this_anchor_addr, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
+
+}
+
+void loop()
+{
+  DW1000Ranging.loop();
 }
