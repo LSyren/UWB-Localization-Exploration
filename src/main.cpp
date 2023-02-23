@@ -1,6 +1,6 @@
 /*
 Makerfabs ESP32 UWB DW1000,
-Anchor code, for communication with single tag.
+Code for tag.
 */
 
 #include <SPI.h>
@@ -19,6 +19,8 @@ Anchor code, for communication with single tag.
 #define SPI_MOSI 23
 #define DW_CS 4
 
+#define DETECTION_PIN 5
+
 // connection pins
 const uint8_t PIN_RST = 27; // reset pin
 const uint8_t PIN_IRQ = 34; // irq pin
@@ -27,6 +29,7 @@ const uint8_t PIN_SS = 4;   // spi select pin
 #endif
 
 #ifdef BLUEPILL
+#define DETECTION_PIN PA5
 
 #define SPI_SCK PB13
 #define SPI_MISO PB14
@@ -49,11 +52,22 @@ void newRange()
     Serial.print("\t RX power: ");
     Serial.print(DW1000Ranging.getDistantDevice()->getRXPower());
     Serial.println(" dBm");
+
+    if ((DW1000Ranging.getDistantDevice()->getRange() < 2.0))
+    {
+        digitalWrite(DETECTION_PIN, LOW);
+        Serial.println("WITHIN");
+    }
+    else
+    {
+        digitalWrite(DETECTION_PIN, HIGH);
+        Serial.println("OUTSIDE");
+    }
 }
 
-void newBlink(DW1000Device *device)
+void newDevice(DW1000Device *device)
 {
-    Serial.print("blink; 1 device added ! -> ");
+    Serial.print("ranging init; 1 device added ! -> ");
     Serial.print(" short:");
     Serial.println(device->getShortAddress(), HEX);
 }
@@ -62,6 +76,8 @@ void inactiveDevice(DW1000Device *device)
 {
     Serial.print("delete inactive device: ");
     Serial.println(device->getShortAddress(), HEX);
+    digitalWrite(DETECTION_PIN, HIGH);
+    Serial.println("LOW, lost device");
 }
 
 void setup()
@@ -75,12 +91,13 @@ void setup()
     #endif
     #ifdef BLUEPILL
     SPI.setMISO(SPI_MISO);
-    SPI.setMOSI(SPI_MOSI);
-    SPI.setSCLK(SPI_SCK);
+	SPI.setMOSI(SPI_MOSI);
+	SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
     #endif
 
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
+    //define the sketch as anchor. It will be great to dynamically change the type of module
 
     //Set leds
     DW1000.enableDebounceClock();
@@ -104,13 +121,14 @@ void setup()
 
     //define the sketch as anchor. It will be great to dynamically change the type of module
     DW1000Ranging.attachNewRange(newRange);
-    DW1000Ranging.attachBlinkDevice(newBlink);
+    DW1000Ranging.attachNewDevice(newDevice);
     DW1000Ranging.attachInactiveDevice(inactiveDevice);
     //Enable the filter to smooth the distance
     //DW1000Ranging.useRangeFilter(true);
 
-    //we start the module as an anchor
-    // DW1000Ranging.startAsAnchor("82:17:5B:D5:A9:9A:E2:9C", DW1000.MODE_LONGDATA_RANGE_ACCURACY);
+    //we start the module as a tag
+    DW1000Ranging.startAsTag("7C:00:22:EA:82:60:3B:9C", DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
+    //DW1000.enableManualLedBlinking();
 
 #if defined(UWB_ANCHOR)
     DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
@@ -122,8 +140,8 @@ void setup()
     // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_ACCURACY);
     // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_FAST_ACCURACY);
     // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_RANGE_ACCURACY);
+    pinMode(DETECTION_PIN, OUTPUT);
 }
-
 void loop()
 {
     DW1000Ranging.loop();

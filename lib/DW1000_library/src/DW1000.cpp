@@ -109,7 +109,7 @@ const byte DW1000Class::BIAS_900_64[] = {147, 133, 117, 99, 75, 50, 29, 0, 24, 4
 	const SPISettings DW1000Class::_fastSPI = SPISettings(16000000L, MSBFIRST, SPI_MODE0);
 #endif
 const SPISettings DW1000Class::_slowSPI = SPISettings(2000000L, MSBFIRST, SPI_MODE0);
-const SPISettings* DW1000Class::_currentSPI = &_fastSPI;
+const SPISettings* DW1000Class::_currentSPI = &_slowSPI;
 
 /* ###########################################################################
  * #### Init and end #######################################################

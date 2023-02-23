@@ -8,6 +8,8 @@ Anchor code, for communication with single tag.
 
 #define ANCHOR_ADD "87:17:5B:D5:A9:9A:E2:9C"
 
+uint16_t Adelay = 16566;
+
 #ifdef MAKERFABS
 
 #define SPI_SCK 18
@@ -87,6 +89,8 @@ void setup()
     // enable GPIO3/TXLED blinking
     DW1000.setGPIOMode(MSGP3, LED_MODE);
 
+    // set antenna delay for anchors only. Tag is default (16384)
+    DW1000.setAntennaDelay(Adelay);
     //define the sketch as anchor. It will be great to dynamically change the type of module
     DW1000Ranging.attachNewRange(newRange);
     DW1000Ranging.attachBlinkDevice(newBlink);
