@@ -8,6 +8,8 @@ Anchor and Tag.
 
 #define RANGE_THRESHOLD_METERS 2.0f
 
+uint16_t this_anchor_Adelay = 16600; //starting value
+
 #if defined(UWB_TAG)
 #define ADDR_TAG "87:17:5B:D5:A9:9A:E2:9C"
 #elif defined(UWB_ANCHOR)
@@ -44,6 +46,44 @@ const uint8_t PIN_SS = PB12;   // spi select pin
 
 #endif
 
+#if defined(UWB_ANCHOR_AD)
+
+uint16_t Adelay_delta = 100; //initial binary search step size
+float this_anchor_target_distance = 7.0; //measured distance to anchor in m
+
+void newRange()
+{
+  static float last_delta = 0.0;
+  Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), DEC);
+
+  float dist = 0;
+  for (int i = 0; i < 100; i++) {
+    // get and average 100 measurements
+    dist += DW1000Ranging.getDistantDevice()->getRange();
+  }
+  dist /= 100.0;
+  Serial.print(",");
+  Serial.print(dist); 
+  if (Adelay_delta < 3) {
+    Serial.print(", final Adelay ");
+    Serial.println(this_anchor_Adelay);
+    while(1);  //done calibrating
+  }
+
+  float this_delta = dist - this_anchor_target_distance;  //error in measured distance
+
+  if ( this_delta * last_delta < 0.0) Adelay_delta = Adelay_delta / 2; //sign changed, reduce step size
+    last_delta = this_delta;
+  
+  if (this_delta > 0.0 ) this_anchor_Adelay += Adelay_delta; //new trial Adelay
+  else this_anchor_Adelay -= Adelay_delta;
+  
+  Serial.print(", Adelay = ");
+  Serial.println (this_anchor_Adelay);
+//  DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
+  DW1000.setAntennaDelay(this_anchor_Adelay);
+}
+#else
 void newRange()
 {
     Serial.print("from: ");
@@ -66,6 +106,7 @@ void newRange()
         Serial.println("OUTSIDE");
     }
 }
+#endif
 
 void newDevice(DW1000Device *device)
 {
@@ -93,9 +134,14 @@ void setup()
     #endif
     #ifdef BLUEPILL
     SPI.setMISO(SPI_MISO);
-	SPI.setMOSI(SPI_MOSI);
-	SPI.setSCLK(SPI_SCK);
+    SPI.setMOSI(SPI_MOSI);
+    SPI.setSCLK(SPI_SCK);
     SPI.begin(115200);
+    #endif
+
+    #if defined(UWB_ANCHOR_AD)
+    Serial.print("Starting Adelay "); Serial.println(this_anchor_Adelay);
+    Serial.print("Measured distance "); Serial.println(this_anchor_target_distance);
     #endif
 
     DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
@@ -128,15 +174,11 @@ void setup()
     DW1000Ranging.useRangeFilter(true);
 
 #if defined(UWB_ANCHOR)
+    DW1000.setAntennaDelay(this_anchor_Adelay);
     DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
 #elif defined(UWB_TAG)
     DW1000Ranging.startAsTag(ADDR_TAG, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
 #endif
-    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_LOWPOWER);
-    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_FAST_LOWPOWER);
-    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_ACCURACY);
-    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_FAST_ACCURACY);
-    // DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_LONGDATA_RANGE_ACCURACY);
     pinMode(DETECTION_PIN, OUTPUT);
 }
 void loop()
