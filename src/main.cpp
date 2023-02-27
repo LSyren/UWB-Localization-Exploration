@@ -8,7 +8,7 @@ Anchor and Tag.
 
 #define RANGE_THRESHOLD_METERS 2.0f
 
-uint16_t this_anchor_Adelay = 16600; //starting value
+const uint16_t this_anchor_Adelay = 16566; //starting value
 
 #if defined(UWB_TAG)
 #define ADDR_TAG "87:17:5B:D5:A9:9A:E2:9C"
@@ -16,7 +16,7 @@ uint16_t this_anchor_Adelay = 16600; //starting value
 #define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
 #endif
 
-#ifdef MAKERFABS
+#if defined(MAKERFABS)
 
 #define SPI_SCK 18
 #define SPI_MISO 19
@@ -30,9 +30,7 @@ const uint8_t PIN_RST = 27; // reset pin
 const uint8_t PIN_IRQ = 34; // irq pin
 const uint8_t PIN_SS = 4;   // spi select pin
 
-#endif
-
-#ifdef BLUEPILL
+#elif defined(BLUEPILL)
 #define DETECTION_PIN PA5
 
 #define SPI_SCK PB13
@@ -129,10 +127,9 @@ void setup()
     delay(1000);
 
     //init the configuration
-    #ifdef MAKERFABS
+    #if defined(MAKERFABS)
     SPI.begin(SPI_SCK, SPI_MISO, SPI_MOSI);
-    #endif
-    #ifdef BLUEPILL
+    #elif defined(BLUEPILL)
     SPI.setMISO(SPI_MISO);
     SPI.setMOSI(SPI_MOSI);
     SPI.setSCLK(SPI_SCK);
