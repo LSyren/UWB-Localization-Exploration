@@ -110,11 +110,7 @@ void DW1000Time::setTimestamp(const DW1000Time& copy) {
  * @todo maybe replace by better function without float
  */
 void DW1000Time::setTime(float timeUs) {
-  Serial.print("setTime, timeUs ");
-  Serial.print(timeUs);
 	_timestamp = (int64_t)(timeUs*TIME_RES_INV);
-	Serial.print(", timeUs * TIME_RES_INV ");
-	Serial.println(_timestamp);
 //	_timestamp %= TIME_OVERFLOW; // clean overflow
 }
 

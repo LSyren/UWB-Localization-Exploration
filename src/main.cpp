@@ -156,9 +156,9 @@ void setup()
     DW1000.setGPIOMode(MSGP3, LED_MODE);
 
     // enable EXTTXE - TX antenna activity
-    DW1000.setGPIOMode(MSGP5, LED_MODE);
+    //DW1000.setGPIOMode(MSGP5, LED_MODE);
     // enable EXTRXE - RX antenna activity
-    DW1000.setGPIOMode(MSGP6, LED_MODE);
+    //DW1000.setGPIOMode(MSGP6, LED_MODE);
 
     DW1000.setGPIOMode(MSGP5, LED_MODE);
     DW1000.setGPIOMode(MSGP6, LED_MODE);

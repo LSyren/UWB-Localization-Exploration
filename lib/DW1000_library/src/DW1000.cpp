@@ -1131,13 +1131,6 @@ DW1000Time DW1000Class::setDelayFrom(const DW1000Time& from, const DW1000Time& d
 	futureTime.getTimestamp(delayBytes);
 	delayBytes[0] = 0;
 	delayBytes[1] &= 0xFE;
-	Serial.print("delayBytes ");
-	Serial.print(delayBytes[4], HEX);
-	Serial.print(delayBytes[3], HEX);
-	Serial.print(delayBytes[2], HEX);
-	Serial.print(delayBytes[1], HEX);
-	Serial.print(delayBytes[0], HEX);
-	Serial.println("");
 	writeBytes(DX_TIME, NO_SUB, delayBytes, LEN_DX_TIME);
 	// adjust expected time with configured antenna delay
 	futureTime.setTimestamp(delayBytes);
@@ -1392,10 +1385,6 @@ void DW1000Class::getReceiveTimestamp(DW1000Time& time) {
 	readBytes(RX_TIME, RX_STAMP_SUB, rxTimeBytes, LEN_RX_STAMP);
 	time.setTimestamp(rxTimeBytes);
 
-  Serial.print("getReceiveTimestamp(DW1000Time& time) ");
-  Serial.print(time.getTimestamp(), HEX);
-  Serial.println("");
-
 	// correct timestamp (i.e. consider range bias)
 	/*
 	correctTimestamp(time);
@@ -1596,7 +1585,6 @@ float DW1000Class::getFirstPathPower() {
 }
 
 float DW1000Class::getReceivePower() {
-  Serial.println("getReceivePower()");
 	byte     cirPwrBytes[LEN_CIR_PWR];
 	byte     rxFrameInfo[LEN_RX_FINFO];
 	uint32_t twoPower17 = 131072;
@@ -1614,8 +1602,6 @@ float DW1000Class::getReceivePower() {
 		corrFac = 1.1667;
 	}
 	float that_log = log10f(((float)C*(float)twoPower17)/((float)N*(float)N));
-	Serial.print("log10f: ");
-	Serial.println(that_log);
 	float estRxPwr = 10.0 * that_log - A;
 	if(estRxPwr <= -88) {
 		return estRxPwr;
@@ -1623,8 +1609,6 @@ float DW1000Class::getReceivePower() {
 		// approximation of Fig. 22 in user manual for dbm correction
 		estRxPwr += (estRxPwr+88)*corrFac;
 	}
-	Serial.print("estRxPwr: ");
-	Serial.println(estRxPwr);
 	return estRxPwr;
 }
 

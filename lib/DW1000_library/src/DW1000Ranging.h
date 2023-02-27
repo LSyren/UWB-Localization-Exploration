@@ -66,8 +66,12 @@
 #define DEFAULT_TIMER_DELAY 800
 
 //debug mode
+#ifndef INFO
+#define INFO true
+#endif
+
 #ifndef DEBUG
-#define DEBUG true
+#define DEBUG false
 #endif
 
 
