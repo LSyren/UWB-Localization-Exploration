@@ -11,7 +11,7 @@ Anchor and Tag.
 const uint16_t this_anchor_Adelay = 16566; //starting value
 
 #if defined(UWB_TAG)
-#define ADDR_TAG "87:17:5B:D5:A9:9A:E2:9C"
+#define ADDR_TAG "7F:00:22:EA:82:60:3B:9C"
 #elif defined(UWB_ANCHOR)
 #define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
 #endif
@@ -92,7 +92,7 @@ void newRange()
     Serial.print("\t RX power: ");
     Serial.print(DW1000Ranging.getDistantDevice()->getRXPower());
     Serial.println(" dBm");
-
+    #if defined(UWB_TAG)
     if ((DW1000Ranging.getDistantDevice()->getRange() < RANGE_THRESHOLD_METERS))
     {
         digitalWrite(DETECTION_PIN, LOW);
@@ -103,6 +103,7 @@ void newRange()
         digitalWrite(DETECTION_PIN, HIGH);
         Serial.println("OUTSIDE");
     }
+    #endif
 }
 #endif
 
@@ -117,7 +118,9 @@ void inactiveDevice(DW1000Device *device)
 {
     Serial.print("delete inactive device: ");
     Serial.println(device->getShortAddress(), HEX);
+    #if defined(UWB_TAG)
     digitalWrite(DETECTION_PIN, HIGH);
+    #endif
     Serial.println("LOW, lost device");
 }
 
@@ -175,8 +178,8 @@ void setup()
     DW1000Ranging.startAsAnchor(ADDR_ANCHOR, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
 #elif defined(UWB_TAG)
     DW1000Ranging.startAsTag(ADDR_TAG, DW1000.MODE_SHORTDATA_FAST_LOWPOWER, false);
-#endif
     pinMode(DETECTION_PIN, OUTPUT);
+#endif
 }
 void loop()
 {

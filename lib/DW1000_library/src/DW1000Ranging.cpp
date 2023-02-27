@@ -659,7 +659,6 @@ void DW1000RangingClass::loop() {
 					return;
 				}
 				if(messageType == POLL_ACK) {
-  				Serial.println("Saving POLL_ACK Rx timestamp");
 					DW1000.getReceiveTimestamp(myDistantDevice->timePollAckReceived);
 					//we note activity for our device:
 					myDistantDevice->noteActivity();
@@ -684,6 +683,7 @@ void DW1000RangingClass::loop() {
   						//Skip first range
   						if (myDistantDevice->getRange() != 0.0f) {
   							curRange = filterValue(curRange, myDistantDevice->getRange(), _rangeFilterValue);
+							Serial.println(curRange);
   						}
   					}
 
