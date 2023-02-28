@@ -63,7 +63,7 @@
 #define ANCHOR 1
 
 //default timer delay
-#define DEFAULT_TIMER_DELAY 80
+#define DEFAULT_TIMER_DELAY 800
 
 //debug mode
 #ifndef INFO
@@ -71,7 +71,7 @@
 #endif
 
 #ifndef DEBUG
-#define DEBUG true
+#define DEBUG false
 #endif
 
 

@@ -369,14 +369,6 @@ void DW1000RangingClass::checkForInactiveDevices() {
 
 // TODO check return type
 int16_t DW1000RangingClass::detectMessageType(byte datas[]) {
-  Serial.print(__FILE__);
-  Serial.print(":");
-  Serial.print(__LINE__);
-  Serial.print(":");
-  Serial.print("detectMessageType, datas[0] == ");
-  Serial.print(datas[0], HEX);
-  Serial.print(", datas[1] == ");
-  Serial.println(datas[1], HEX);
 	if(datas[0] == FC_1_BLINK) {
 		return BLINK;
 	}
@@ -477,18 +469,6 @@ void DW1000RangingClass::loop() {
 			byte address[8];
 			byte shortAddress[2];
 			_globalMac.decodeBlinkFrame(data, address, shortAddress);
-			Serial.print("BLINK address ");
-			Serial.print(address[0], HEX);
-			Serial.print(address[1], HEX);
-			Serial.print(address[2], HEX);
-			Serial.print(address[3], HEX);
-			Serial.print(address[4], HEX);
-			Serial.print(address[5], HEX);
-			Serial.print(address[6], HEX);
-			Serial.print(address[7], HEX);
-			Serial.print(", short address ");
-			Serial.print(shortAddress[0], HEX);
-			Serial.println(shortAddress[1], HEX);
 			//we crate a new device with th tag
 			DW1000Device myTag(address, shortAddress);
 
@@ -549,14 +529,9 @@ void DW1000RangingClass::loop() {
 				if(messageType != _expectedMsgId) {
 					// unexpected message, start over again (except if already POLL)
 					_protocolFailed = true;
-					Serial.print("--- E - expected msg ");
-					Serial.print(_expectedMsgId);
-					Serial.print(", got msg ");
-					Serial.println(messageType);
 				}
 
 				if(messageType == POLL) {
-  				Serial.println("=== handling POLL");
 					//we receive a POLL which is a broacast message
 					//we need to grab info about it
 					int16_t numberDevices = 0;
@@ -583,7 +558,6 @@ void DW1000RangingClass::loop() {
 							//we note activity for our device:
 							myDistantDevice->noteActivity();
 							//we indicate our next receive message for our ranging protocole
-							Serial.println("Got POLL, expecting RANGE");
 							_expectedMsgId = RANGE;
 							transmitPollAck(myDistantDevice);
 							noteActivity();
@@ -608,7 +582,6 @@ void DW1000RangingClass::loop() {
 
 				}
 				else if(messageType == RANGE) {
-  				Serial.println("=== handling RANGE");
 					//we receive a RANGE which is a broacast message
 					//we need to grab info about it
 					uint8_t numberDevices = 0;
@@ -623,10 +596,8 @@ void DW1000RangingClass::loop() {
 						//we test if the short address is our address
 						if(shortAddress[0] == _currentShortAddress[0] && shortAddress[1] == _currentShortAddress[1]) {
 							//we grab the replytime wich is for us
-      				Serial.println("Saving RANGE Rx timestamp");
 							DW1000.getReceiveTimestamp(myDistantDevice->timeRangeReceived);
 							noteActivity();
-							Serial.println("Got RANGE, expecting POLL");
 							_expectedMsgId = POLL;
 
 							if(!_protocolFailed) {
@@ -698,7 +669,6 @@ void DW1000RangingClass::loop() {
 					return;
 				}
 				if(messageType == POLL_ACK) {
-  				Serial.println("Saving POLL_ACK Rx timestamp");
 					DW1000.getReceiveTimestamp(myDistantDevice->timePollAckReceived);
 					//we note activity for our device:
 					myDistantDevice->noteActivity();
@@ -723,7 +693,6 @@ void DW1000RangingClass::loop() {
   						//Skip first range
   						if (myDistantDevice->getRange() != 0.0f) {
   							curRange = filterValue(curRange, myDistantDevice->getRange(), _rangeFilterValue);
-							Serial.println(curRange);
   						}
   					}
 
@@ -742,7 +711,6 @@ void DW1000RangingClass::loop() {
 
 				}
 				else if(messageType == RANGE_FAILED) {
-  				Serial.println("--- E - RANGE_FAILED");
 					//not needed as we have a timer;
 					return;
 					_expectedMsgId = POLL_ACK;
@@ -772,13 +740,11 @@ void DW1000RangingClass::setRangeFilterValue(uint16_t newValue) {
 
 
 void DW1000RangingClass::handleSent() {
-  Serial.println("handleSent()");
 	// status change on sent success
 	_sentAck = true;
 }
 
 void DW1000RangingClass::handleReceived() {
-  Serial.println("handleReceived()");
 	// status change on received success
 	_receivedAck = true;
 }
@@ -848,14 +814,12 @@ void DW1000RangingClass::transmit(byte datas[], DW1000Time time) {
 }
 
 void DW1000RangingClass::transmitBlink() {
-  Serial.println("transmitBlink");
 	transmitInit();
 	_globalMac.generateBlinkFrame(data, _currentAddress, _currentShortAddress);
 	transmit(data);
 }
 
 void DW1000RangingClass::transmitRangingInit(DW1000Device* myDistantDevice) {
-  Serial.println("transmitRangingInit");
 	transmitInit();
 	//we generate the mac frame for a ranging init message
 	_globalMac.generateLongMACFrame(data, _currentShortAddress, myDistantDevice->getByteAddress());
@@ -915,7 +879,6 @@ void DW1000RangingClass::transmitPoll(DW1000Device* myDistantDevice) {
 
 
 void DW1000RangingClass::transmitPollAck(DW1000Device* myDistantDevice) {
-  Serial.println("transmitPollAck");
 	transmitInit();
 	_globalMac.generateShortMACFrame(data, _currentShortAddress, myDistantDevice->getByteShortAddress());
 	data[SHORT_MAC_LEN] = POLL_ACK;
@@ -939,7 +902,6 @@ void DW1000RangingClass::transmitPollAck(DW1000Device* myDistantDevice) {
 }
 
 void DW1000RangingClass::transmitRange(DW1000Device* myDistantDevice) {
-  Serial.println("transmitRange");
 	//transmit range need to accept broadcast for multiple anchor
 	transmitInit();
 
@@ -993,7 +955,6 @@ void DW1000RangingClass::transmitRange(DW1000Device* myDistantDevice) {
 
 
 void DW1000RangingClass::transmitRangeReport(DW1000Device* myDistantDevice) {
-  Serial.println("transmitRangeReport");
 	transmitInit();
 	_globalMac.generateShortMACFrame(data, _currentShortAddress, myDistantDevice->getByteShortAddress());
 	data[SHORT_MAC_LEN] = RANGE_REPORT;
@@ -1017,7 +978,6 @@ void DW1000RangingClass::transmitRangeReport(DW1000Device* myDistantDevice) {
 }
 
 void DW1000RangingClass::transmitRangeFailed(DW1000Device* myDistantDevice) {
-  Serial.println("transmitRangeFailed");
 	transmitInit();
 	_globalMac.generateShortMACFrame(data, _currentShortAddress, myDistantDevice->getByteShortAddress());
 	data[SHORT_MAC_LEN] = RANGE_FAILED;
