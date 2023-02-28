@@ -50,7 +50,7 @@ volatile byte    DW1000RangingClass::_expectedMsgId;
 
 // range filter
 volatile boolean DW1000RangingClass::_useRangeFilter = false;
-uint16_t DW1000RangingClass::_rangeFilterValue = 15;
+uint16_t DW1000RangingClass::_rangeFilterValue = 3;
 
 // message sent/received state
 volatile boolean DW1000RangingClass::_sentAck     = false;
@@ -560,6 +560,7 @@ void DW1000RangingClass::loop() {
 							//we indicate our next receive message for our ranging protocole
 							_expectedMsgId = RANGE;
 							transmitPollAck(myDistantDevice);
+							//Can anchor also be inactive??
 							noteActivity();
 
 							return;

@@ -174,7 +174,7 @@ void setup()
     DW1000Ranging.attachNewDevice(newDevice);
     DW1000Ranging.attachInactiveDevice(inactiveDevice);
     //Enable the filter to smooth the distance
-    DW1000Ranging.useRangeFilter(true);
+    DW1000Ranging.useRangeFilter(false);
 
 #if defined(UWB_ANCHOR)
     DW1000.setAntennaDelay(this_anchor_Adelay);
