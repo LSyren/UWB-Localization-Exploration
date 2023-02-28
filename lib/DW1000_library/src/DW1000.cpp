@@ -1392,10 +1392,6 @@ void DW1000Class::getReceiveTimestamp(DW1000Time& time) {
 	readBytes(RX_TIME, RX_STAMP_SUB, rxTimeBytes, LEN_RX_STAMP);
 	time.setTimestamp(rxTimeBytes);
 
-  Serial.print("getReceiveTimestamp(DW1000Time& time) ");
-  Serial.print(time.getTimestamp(), HEX);
-  Serial.println("");
-
 	// correct timestamp (i.e. consider range bias)
 	/*
 	correctTimestamp(time);
@@ -1614,8 +1610,6 @@ float DW1000Class::getReceivePower() {
 		corrFac = 1.1667;
 	}
 	float that_log = log10f(((float)C*(float)twoPower17)/((float)N*(float)N));
-	Serial.print("log10f: ");
-	Serial.println(that_log);
 	float estRxPwr = 10.0 * that_log - A;
 	if(estRxPwr <= -88) {
 		return estRxPwr;

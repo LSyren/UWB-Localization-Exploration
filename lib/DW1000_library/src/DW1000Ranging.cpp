@@ -123,7 +123,7 @@ void DW1000RangingClass::generalStart() {
 	// anchor starts in receiving mode, awaiting a ranging poll message
 
 
-	if(DEBUG) {
+	if(INFO) {
 		// DEBUG monitoring
 		Serial.println("DW1000-arduino");
 		// initialize the driver
@@ -505,7 +505,8 @@ void DW1000RangingClass::loop() {
 		else if(messageType == RANGING_INIT && _type == TAG) {
 
 			byte address[2];
-			_globalMac.decodeLongMACFrame(data, address);
+			byte addr_dst[8];
+			_globalMac.decodeLongMACFrame(data, address, addr_dst);
 			//we crate a new device with the anchor
 			DW1000Device myAnchor(address, true);
 
@@ -520,9 +521,8 @@ void DW1000RangingClass::loop() {
 		else {
 			//we have a short mac layer frame !
 			byte address[2];
-			_globalMac.decodeShortMACFrame(data, address);
-
-
+			byte addr_dst[2];
+			_globalMac.decodeShortMACFrame(data, address, addr_dst);
 
 			//we get the device which correspond to the message which was sent (need to be filtered by MAC address)
 			DW1000Device* myDistantDevice = searchDistantDevice(address);
@@ -575,13 +575,10 @@ void DW1000RangingClass::loop() {
 							memcpy(&replyTime, data+SHORT_MAC_LEN+2+i*4+2, 2);
 							//we configure our replyTime;
 							_replyDelayTimeUS = replyTime;
-							Serial.print("Set _replyDelayTimeUS to ");
-							Serial.println(_replyDelayTimeUS);
 
 							// on POLL we (re-)start, so no protocol failure
 							_protocolFailed = false;
 
-      				Serial.println("Saving POLL Rx timestamp");
 							DW1000.getReceiveTimestamp(myDistantDevice->timePollReceived);
 							//we note activity for our device:
 							myDistantDevice->noteActivity();
@@ -592,16 +589,20 @@ void DW1000RangingClass::loop() {
 							noteActivity();
 
 							return;
-						} else {
-  						Serial.print("POLL msg got incorrect destination addr, ");
-  						Serial.print(shortAddress[0], HEX);
-  						Serial.print(shortAddress[1], HEX);
-  						Serial.print(" vs ");
-  						Serial.print(_currentShortAddress[0], HEX);
-  						Serial.print(_currentShortAddress[1], HEX);
-  						Serial.println("");
 						}
-
+						else
+						{
+							if (DEBUG)
+							{
+								Serial.print("POLL msg got incorrect destination addr, ");
+								Serial.print(shortAddress[0], HEX);
+								Serial.print(shortAddress[1], HEX);
+								Serial.print(" vs ");
+								Serial.print(_currentShortAddress[0], HEX);
+								Serial.print(_currentShortAddress[1], HEX);
+								Serial.println("");
+							}
+						}
 					}
 
 
@@ -633,15 +634,6 @@ void DW1000RangingClass::loop() {
 								myDistantDevice->timePollSent.setTimestamp(data+SHORT_MAC_LEN+4+17*i);
 								myDistantDevice->timePollAckReceived.setTimestamp(data+SHORT_MAC_LEN+9+17*i);
 								myDistantDevice->timeRangeSent.setTimestamp(data+SHORT_MAC_LEN+14+17*i);
-
-								Serial.println("Receive timestamp");
-								Serial.print("\tPOLL sent ");
-								Serial.println(myDistantDevice->timePollSent.getTimestamp(), HEX);
-								Serial.print("\tPOLL ACK received ");
-								Serial.println(myDistantDevice->timePollAckReceived.getTimestamp(), HEX);
-								Serial.print("\tRANGE sent ");
-								Serial.println(myDistantDevice->timeRangeSent.getTimestamp(), HEX);
-								Serial.println("");
 
 								// (re-)compute range as two-way ranging is done
 								DW1000Time myTOF;
@@ -679,15 +671,17 @@ void DW1000RangingClass::loop() {
 
 							return;
 						} else {
-  						Serial.print("RANGE msg got incorrect destination addr, ");
-  						Serial.print(shortAddress[0], HEX);
-  						Serial.print(shortAddress[1], HEX);
-  						Serial.print(" vs ");
-  						Serial.print(_currentShortAddress[0], HEX);
-  						Serial.print(_currentShortAddress[1], HEX);
-  						Serial.println("");
+							if (DEBUG)
+							{
+								Serial.print("RANGE msg got incorrect destination addr, ");
+								Serial.print(shortAddress[0], HEX);
+								Serial.print(shortAddress[1], HEX);
+								Serial.print(" vs ");
+								Serial.print(_currentShortAddress[0], HEX);
+								Serial.print(_currentShortAddress[1], HEX);
+								Serial.println("");
+							}
 						}
-
 
 					}
 
@@ -718,29 +712,34 @@ void DW1000RangingClass::loop() {
 				}
 				else if(messageType == RANGE_REPORT) {
 
-					float curRange;
-					memcpy(&curRange, data+1+SHORT_MAC_LEN, 4);
-					float curRXPower;
-					memcpy(&curRXPower, data+5+SHORT_MAC_LEN, 4);
+					// Only react on Range Report addressed to this TAG. TAG receives all Range Reports.
+  				if (addr_dst[0] == _currentAddress[1] && addr_dst[1] == _currentAddress[0]) {
+  					float curRange;
+  					memcpy(&curRange, data+1+SHORT_MAC_LEN, 4);
+  					float curRXPower;
+  					memcpy(&curRXPower, data+5+SHORT_MAC_LEN, 4);
 
-					if (_useRangeFilter) {
-						//Skip first range
-						if (myDistantDevice->getRange() != 0.0f) {
-							curRange = filterValue(curRange, myDistantDevice->getRange(), _rangeFilterValue);
-						}
-					}
+  					if (_useRangeFilter) {
+  						//Skip first range
+  						if (myDistantDevice->getRange() != 0.0f) {
+  							curRange = filterValue(curRange, myDistantDevice->getRange(), _rangeFilterValue);
+							Serial.println(curRange);
+  						}
+  					}
 
-					//we have a new range to save !
-					myDistantDevice->setRange(curRange);
-					myDistantDevice->setRXPower(curRXPower);
+  					//we have a new range to save !
+  					myDistantDevice->setRange(curRange);
+  					myDistantDevice->setRXPower(curRXPower);
 
 
-					//We can call our handler !
-					//we have finished our range computation. We send the corresponding handler
-					_lastDistantDevice = myDistantDevice->getIndex();
-					if(_handleNewRange != 0) {
-						(*_handleNewRange)();
-					}
+  					//We can call our handler !
+  					//we have finished our range computation. We send the corresponding handler
+  					_lastDistantDevice = myDistantDevice->getIndex();
+  					if(_handleNewRange != 0) {
+  						(*_handleNewRange)();
+  					}
+  				}
+
 				}
 				else if(messageType == RANGE_FAILED) {
   				Serial.println("--- E - RANGE_FAILED");
@@ -869,7 +868,6 @@ void DW1000RangingClass::transmitRangingInit(DW1000Device* myDistantDevice) {
 }
 
 void DW1000RangingClass::transmitPoll(DW1000Device* myDistantDevice) {
-  Serial.println("transmitPoll");
 
 	transmitInit();
 
@@ -923,14 +921,20 @@ void DW1000RangingClass::transmitPollAck(DW1000Device* myDistantDevice) {
 	data[SHORT_MAC_LEN] = POLL_ACK;
 	// delay the same amount as ranging tag
 	DW1000Time deltaTime = DW1000Time(_replyDelayTimeUS, DW1000Time::MICROSECONDS);
-	Serial.print(" --- deltaTime ");
-	Serial.println(deltaTime.getTimestamp(), HEX);
-	Serial.print(" --- _replyDelayTimeUS ");
-	Serial.println(_replyDelayTimeUS);
+	if (DEBUG)
+	{
+		Serial.print(" --- deltaTime ");
+		Serial.println(deltaTime.getTimestamp(), HEX);
+		Serial.print(" --- _replyDelayTimeUS ");
+		Serial.println(_replyDelayTimeUS);
+	}
 	copyShortAddress(_lastSentToShortAddress, myDistantDevice->getByteShortAddress());
-  Serial.print("transmitPollAck, with delay of ");
-  Serial.print(deltaTime.getTimestamp(), HEX);
-  Serial.println("");
+	if (DEBUG)
+	{
+		Serial.print("transmitPollAck, with delay of ");
+		Serial.print(deltaTime.getTimestamp(), HEX);
+		Serial.println("");
+	}
 	transmit(data, deltaTime);
 }
 
@@ -999,12 +1003,15 @@ void DW1000RangingClass::transmitRangeReport(DW1000Device* myDistantDevice) {
 	//We add the Range and then the RXPower
 	memcpy(data+1+SHORT_MAC_LEN, &curRange, 4);
 	memcpy(data+5+SHORT_MAC_LEN, &curRXPower, 4);
-	Serial.print("range ");
-	Serial.print(*(data + SHORT_MAC_LEN + 1), HEX);
-	Serial.print(*(data + SHORT_MAC_LEN + 1 + 1), HEX);
-	Serial.print(*(data + SHORT_MAC_LEN + 1 + 2), HEX);
-	Serial.print(*(data + SHORT_MAC_LEN + 1 + 3), HEX);
-	Serial.println("");
+	if (DEBUG)
+	{
+		Serial.print("range ");
+		Serial.print(*(data + SHORT_MAC_LEN + 1), HEX);
+		Serial.print(*(data + SHORT_MAC_LEN + 1 + 1), HEX);
+		Serial.print(*(data + SHORT_MAC_LEN + 1 + 2), HEX);
+		Serial.print(*(data + SHORT_MAC_LEN + 1 + 3), HEX);
+		Serial.println("");
+	}
 	copyShortAddress(_lastSentToShortAddress, myDistantDevice->getByteShortAddress());
 	transmit(data, DW1000Time(_replyDelayTimeUS, DW1000Time::MICROSECONDS));
 }
@@ -1041,22 +1048,37 @@ void DW1000RangingClass::computeRangeAsymmetric(DW1000Device* myDistantDevice, D
 	DW1000Time reply2 = (myDistantDevice->timeRangeSent-myDistantDevice->timePollAckReceived).wrap();
 
 	myTOF->setTimestamp((round1*round2-reply1*reply2)/(round1+round2+reply1+reply2));
+	if (DEBUG)
+	{
 
-	Serial.print("timePollAckReceived ");myDistantDevice->timePollAckReceived.print();
-	Serial.print("timePollSent ");myDistantDevice->timePollSent.print();
-	Serial.print("round1 "); Serial.println((long)round1.getTimestamp());
+		Serial.print("timePollAckReceived ");
+		myDistantDevice->timePollAckReceived.print();
+		Serial.print("timePollSent ");
+		myDistantDevice->timePollSent.print();
+		Serial.print("round1 ");
+		Serial.println((long)round1.getTimestamp());
 
-	Serial.print("timePollAckSent ");myDistantDevice->timePollAckSent.print();
-	Serial.print("timePollReceived ");myDistantDevice->timePollReceived.print();
-	Serial.print("reply1 "); Serial.println((long)reply1.getTimestamp());
+		Serial.print("timePollAckSent ");
+		myDistantDevice->timePollAckSent.print();
+		Serial.print("timePollReceived ");
+		myDistantDevice->timePollReceived.print();
+		Serial.print("reply1 ");
+		Serial.println((long)reply1.getTimestamp());
 
-	Serial.print("timeRangeReceived ");myDistantDevice->timeRangeReceived.print();
-	Serial.print("timePollAckSent ");myDistantDevice->timePollAckSent.print();
-	Serial.print("round2 "); Serial.println((long)round2.getTimestamp());
+		Serial.print("timeRangeReceived ");
+		myDistantDevice->timeRangeReceived.print();
+		Serial.print("timePollAckSent ");
+		myDistantDevice->timePollAckSent.print();
+		Serial.print("round2 ");
+		Serial.println((long)round2.getTimestamp());
 
-	Serial.print("timeRangeSent ");myDistantDevice->timeRangeSent.print();
-	Serial.print("timePollAckReceived ");myDistantDevice->timePollAckReceived.print();
-	Serial.print("reply2 "); Serial.println((long)reply2.getTimestamp());
+		Serial.print("timeRangeSent ");
+		myDistantDevice->timeRangeSent.print();
+		Serial.print("timePollAckReceived ");
+		myDistantDevice->timePollAckReceived.print();
+		Serial.print("reply2 ");
+		Serial.println((long)reply2.getTimestamp());
+	}
 }
 
 
