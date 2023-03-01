@@ -11,7 +11,7 @@ Anchor and Tag.
 const uint16_t this_anchor_Adelay = 16566; //starting value
 
 #if defined(UWB_TAG)
-#define ADDR_TAG "7F:00:22:EA:82:60:3B:9C"
+#define ADDR_TAG "7A:00:22:EA:82:60:3B:9C"
 #elif defined(UWB_ANCHOR)
 #define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
 #endif

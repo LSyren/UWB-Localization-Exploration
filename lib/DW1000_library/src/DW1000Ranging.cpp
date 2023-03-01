@@ -100,6 +100,7 @@ void DW1000RangingClass::initCommunication(uint8_t myRST, uint8_t mySS, uint8_t 
 	_timerDelay       = DEFAULT_TIMER_DELAY;
 
 
+
 	DW1000.begin(myIRQ, myRST);
 	DW1000.select(mySS);
 }
@@ -781,7 +782,7 @@ void DW1000RangingClass::timerTick() {
 		checkForInactiveDevices();
 	}
 	counterForBlink++;
-	if(counterForBlink > 20) {
+	if(counterForBlink > TRANSMIT_BLINK_VAL) {
 		counterForBlink = 0;
 	}
 }
