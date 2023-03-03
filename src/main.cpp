@@ -6,12 +6,11 @@ Anchor and Tag.
 #include <SPI.h>
 #include "DW1000Ranging.h"
 
-#define RANGE_THRESHOLD_METERS 2.0f
-
-const uint16_t this_anchor_Adelay = 16566; //starting value
+#define RANGE_THRESHOLD_METERS 4.0f
+uint16_t this_anchor_Adelay = 16514; //starting value 16566, 16539
 
 #if defined(UWB_TAG)
-#define ADDR_TAG "7A:00:22:EA:82:60:3B:9C"
+#define ADDR_TAG "7B:00:22:EA:82:60:3B:9C"
 #elif defined(UWB_ANCHOR)
 #define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
 #endif
@@ -45,7 +44,6 @@ const uint8_t PIN_SS = PB12;   // spi select pin
 #endif
 
 #if defined(UWB_ANCHOR_AD)
-
 uint16_t Adelay_delta = 100; //initial binary search step size
 float this_anchor_target_distance = 7.0; //measured distance to anchor in m
 
