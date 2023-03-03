@@ -18,7 +18,7 @@
  * Arduino global library (header file) working with the DW1000 library
  * for the Decawave DW1000 UWB transceiver IC. This class has the purpose
  * to generate the mac layer
- * 
+ *
  * @todo everything, this class is only a prototype
  */
 
@@ -38,7 +38,7 @@
 #define _DW1000MAC_H_INCLUDED
 
 #include <Arduino.h>
-#include "DW1000Device.h" 
+#include "DW1000Device.h"
 
 class DW1000Device;
 
@@ -48,43 +48,42 @@ public:
 	DW1000Mac(DW1000Device* parent);
 	DW1000Mac();
 	~DW1000Mac();
-	
-	
+
+
 	//setters
 	void setDestinationAddress(byte* destinationAddress);
 	void setDestinationAddressShort(byte* shortDestinationAddress);
 	void setSourceAddress(byte* sourceAddress);
 	void setSourceAddressShort(byte* shortSourceAddress);
-	
-	
+
+
 	//for poll message we use just 2 bytes address
 	//total=12 bytes
 	void generateBlinkFrame(byte frame[], byte sourceAddress[], byte sourceShortAddress[]);
-	
+
 	//the short fram usually for Resp, Final, or Report
 	//2 bytes for Desination Address and 2 bytes for Source Address
 	//total=9 bytes
 	void generateShortMACFrame(byte frame[], byte sourceShortAddress[], byte destinationShortAddress[]);
-	
+
 	//the long frame for Ranging init
 	//8 bytes for Destination Address and 2 bytes for Source Address
 	//total of
 	void generateLongMACFrame(byte frame[], byte sourceShortAddress[], byte destinationAddress[]);
-	
+
 	//in order to decode the frame and save source Address!
 	void decodeBlinkFrame(byte frame[], byte address[], byte shortAddress[]);
-	void decodeShortMACFrame(byte frame[], byte address[]);
-	void decodeLongMACFrame(byte frame[], byte address[]);
-	
+	void decodeShortMACFrame(byte frame[], byte address[], byte destinationAddress[]);
+	void decodeLongMACFrame(byte frame[], byte address[], byte destinationAddress[]);
+
 	void incrementSeqNumber();
 
 
 private:
 	uint8_t _seqNumber = 0;
 	void reverseArray(byte to[], byte from[], int16_t size);
-	
+
 };
 
 
 #endif
-
