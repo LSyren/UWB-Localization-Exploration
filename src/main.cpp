@@ -9,7 +9,7 @@ Anchor and Tag.
 uint16_t this_anchor_Adelay = 16514; //starting value 16566, 16539
 
 #if defined(UWB_TAG)
-#define ADDR_TAG "7F:00:22:EA:82:60:3B:9C"
+#define ADDR_TAG "7D:00:22:EA:82:60:3B:9C"
 #elif defined(UWB_ANCHOR)
 #define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
 #endif
@@ -29,7 +29,7 @@ const uint8_t PIN_IRQ = 34; // irq pin
 const uint8_t PIN_SS = 4;   // spi select pin
 
 //Anchor 1787 has a threshold of 1.5 meters, anchor 1788 has a threshold of 2.5 meters
-const float anchors_threshold[] = {1.5,2.5}; //meters
+const float anchors_threshold[] = {3.5,2.0}; //meters
 const uint16_t anchors[] = {6023,6024}; //1787, 1788
 
 
