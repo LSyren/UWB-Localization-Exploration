@@ -29,7 +29,7 @@ const uint8_t PIN_IRQ = 34; // irq pin
 const uint8_t PIN_SS = 4;   // spi select pin
 
 //Anchor 1787 has a threshold of 1.5 meters, anchor 1788 has a threshold of 2.5 meters
-const float anchors_threshold[] = {3.5,2.0}; //meters
+const float anchors_threshold[] = {3.5,2.5}; //meters
 const uint16_t anchors[] = {6023,6024}; //1787, 1788
 
 
