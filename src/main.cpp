@@ -235,7 +235,7 @@ void newRange()
     // Update anchor distance.
     int anchor_idx = DW1000Ranging.getDistantDevice()->getShortAddress() & 0x07;
 
-    if (anchor_idx > 0) {
+    if (anchor_idx > 0 && anchor_idx <= N_ANCHORS) {
         last_anchor_update[anchor_idx - 1] = millis();
         float range = DW1000Ranging.getDistantDevice()->getRange();
         last_anchor_distance[anchor_idx - 1] = range;
