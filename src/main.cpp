@@ -59,7 +59,7 @@ void newRange()
   }
   dist /= 100.0;
   Serial.print(",");
-  Serial.print(dist); 
+  Serial.print(dist);
   if (Adelay_delta < 3) {
     Serial.print(", final Adelay ");
     Serial.println(this_anchor_Adelay);
@@ -70,10 +70,10 @@ void newRange()
 
   if ( this_delta * last_delta < 0.0) Adelay_delta = Adelay_delta / 2; //sign changed, reduce step size
     last_delta = this_delta;
-  
+
   if (this_delta > 0.0 ) this_anchor_Adelay += Adelay_delta; //new trial Adelay
   else this_anchor_Adelay -= Adelay_delta;
-  
+
   Serial.print(", Adelay = ");
   Serial.println (this_anchor_Adelay);
 //  DW1000Ranging.initCommunication(PIN_RST, PIN_SS, PIN_IRQ); //Reset, CS, IRQ pin
@@ -188,3 +188,130 @@ void loop()
 {
     DW1000Ranging.loop();
 }
+
+
+// variables for position determination
+#define N_ANCHORS 4
+
+float anchor_matrix[N_ANCHORS][3] = { //list of anchor coordinates, relative to chosen origin.
+    {0.0, 0.0, 0.97},  //Anchor labeled #1
+    {3.99, 5.44, 1.14},//Anchor labeled #2
+    {3.71, -0.3, 0.6}, //Anchor labeled #3
+    { -0.56, 4.88, 0.15} //Anchor labeled #4
+};  //Z values are ignored in this code, except to compute RMS distance error
+
+float last_anchor_distance[N_ANCHORS] = {0.0}; //most recent distance reports
+
+float current_tag_position[2] = {0.0, 0.0}; //global current position (meters with respect to anchor origin)
+float current_distance_rmse = 0.0;  //rms error in distance calc => crude measure of position error (meters).  Needs to be better characterized
+
+int trilat2D_4A(void) {
+    // for method see technical paper at
+    // https://www.th-luebeck.de/fileadmin/media_cosa/Dateien/Veroeffentlichungen/Sammlung/TR-2-2015-least-sqaures-with-ToA.pdf
+    // S. James Remington 1/2022
+    //
+    // A nice feature of this method is that the normal matrix depends only on the anchor arrangement
+    // and needs to be inverted only once. Hence, the position calculation should be robust.
+    //
+    static bool first = true;  //first time through, some preliminary work
+    float d[N_ANCHORS]; //temp vector, distances from anchors
+
+    static float A[N_ANCHORS - 1][2];
+    static float Ainv[2][2];
+    static float b[N_ANCHORS - 1];
+    static float kv[N_ANCHORS]; //calculated in first call, used in later calls
+
+    int i, j, k;
+    // copy distances to local storage
+    for (i = 0; i < N_ANCHORS; i++) d[i] = last_anchor_distance[i];
+
+#ifdef DEBUG_TRILAT
+    char line[60];
+    snprintf(line, sizeof line, "d: %6.2f %6.2f %6.2f", d[0], d[1], d[2]);
+    Serial.println(line);
+#endif
+
+    if (first) {  //intermediate fixed vectors
+        first = false;
+
+        float x[N_ANCHORS], y[N_ANCHORS]; //intermediate vectors
+
+        for (i = 0; i < N_ANCHORS; i++) {
+            x[i] = anchor_matrix[i][0];
+            y[i] = anchor_matrix[i][1];
+            kv[i] = x[i] * x[i] + y[i] * y[i];
+        }
+
+        // set up least squares equation
+
+        for (i = 1; i < N_ANCHORS; i++) {
+            A[i - 1][0] = x[i] - x[0];
+            A[i - 1][1] = y[i] - y[0];
+#ifdef DEBUG_TRILAT
+            snprintf(line, sizeof line, "A  %5.2f %5.2f", A[i - 1][0], A[i - 1][1]);
+            Serial.println(line);
+#endif
+        }
+        float ATA[2][2];  //calculate A transpose A
+        // Cij = sum(k) (Aki*Akj)
+        for (i = 0; i < 2; i++) {
+            for (j = 0; j < 2; j++) {
+                ATA[i][j] = 0.0;
+                for (k = 0; k < N_ANCHORS - 1; k++) ATA[i][j] += A[k][i] * A[k][j];
+            }
+        }
+#ifdef DEBUG_TRILAT
+        snprintf(line, sizeof line, "ATA %5.2f %5.2f\n    %5.2f %5.2f", ATA[0][0], ATA[0][1], ATA[1][0], ATA[1][1]);
+        Serial.println(line);
+#endif
+
+        //invert ATA
+        float det = ATA[0][0] * ATA[1][1] - ATA[1][0] * ATA[0][1];
+        if (fabs(det) < 1.0E-4) {
+            Serial.println("***Singular matrix, check anchor coordinates***");
+            while (1) delay(1); //hang
+        }
+        det = 1.0 / det;
+        //scale adjoint
+        Ainv[0][0] =  det * ATA[1][1];
+        Ainv[0][1] = -det * ATA[0][1];
+        Ainv[1][0] = -det * ATA[1][0];
+        Ainv[1][1] =  det * ATA[0][0];
+#ifdef DEBUG_TRILAT
+        snprintf(line, sizeof line, "Ainv %7.4f %7.4f\n     %7.4f %7.4f", Ainv[0][0], Ainv[0][1], Ainv[1][0], Ainv[1][1]);
+        Serial.println(line);
+        snprintf(line, sizeof line, "det Ainv %8.3e", det);
+        Serial.println(line);
+#endif
+
+    } //end if (first);
+
+    //least squares solution for position
+    //solve:  (x,y) = 0.5*(Ainv AT b)
+
+    for (i = 1; i < N_ANCHORS; i++) {
+        b[i - 1] = d[0] * d[0] - d[i] * d[i] + kv[i] - kv[0];
+    }
+
+    float ATb[2] = {0.0}; //A transpose b
+    for (i = 0; i < N_ANCHORS - 1; i++) {
+        ATb[0] += A[i][0] * b[i];
+        ATb[1] += A[i][1] * b[i];
+    }
+
+    current_tag_position[0] = 0.5 * (Ainv[0][0] * ATb[0] + Ainv[0][1] * ATb[1]);
+    current_tag_position[1] = 0.5 * (Ainv[1][0] * ATb[0] + Ainv[1][1] * ATb[1]);
+
+    // calculate rms error for distances
+    float rmse = 0.0, dc0 = 0.0, dc1 = 0.0, dc2 = 0.0;
+    for (i = 0; i < N_ANCHORS; i++) {
+        dc0 = current_tag_position[0] - anchor_matrix[i][0];
+        dc1 = current_tag_position[1] - anchor_matrix[i][1];
+        dc2 = anchor_matrix[i][2]; //include known Z coordinate of anchor
+        dc0 = d[i] - sqrt(dc0 * dc0 + dc1 * dc1 + dc2 * dc2);
+        rmse += dc0 * dc0;
+    }
+    current_distance_rmse = sqrt(rmse / ((float)N_ANCHORS));
+
+    return 1;
+}  //end trilat2D_3A
