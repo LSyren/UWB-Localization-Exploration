@@ -94,7 +94,7 @@ class CanvasWidget(RelativeLayout):
 
 class MainApp(App):
     global q
-    
+
     def build(self):
         return MyLayout(q)
 
@@ -107,7 +107,7 @@ def dummy_source(q):
     max_y = SPACE_SIZE_Y
     max_z = 0
 
-    cur_pos = [0] * 3
+    cur_pos = [SPACE_SIZE_X / 2, SPACE_SIZE_Y / 2, 0]
     new_pos = [0] * 3
     counter = 0
     sign = -1
@@ -138,16 +138,16 @@ def dummy_source(q):
         time.sleep(0.01)
 
 
-# if len(sys.argv) <= 1:
-#     print("")
-#     print("Please put the path to the serial port as an argument:")
-#     print("")
-#     print(f"\tpython3 {os.path.basename(__file__)} /dev/ttyUSB0")
-#     sys.exit(1)
+if len(sys.argv) <= 1:
+    print("")
+    print("Please put the path to the serial port as an argument:")
+    print("")
+    print(f"\tpython3 {os.path.basename(__file__)} /dev/ttyUSB0")
+    sys.exit(1)
 
 
-# PORT = sys.argv[1]
-thr_recv = threading.Thread(target=dummy_source, args=(q,), daemon=True)
+PORT = sys.argv[1]
+thr_recv = threading.Thread(target=serial_receive, args=(PORT, q,), daemon=True)
 thr_recv.start()
 
 MainApp().run()
