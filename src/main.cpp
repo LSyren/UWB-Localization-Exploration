@@ -175,6 +175,95 @@ int trilat2D_4A(void) {
     return 1;
 }  //end trilat2D_3A
 
+int trilat2D_3A(void) {
+
+  // for method see technical paper at
+  // https://www.th-luebeck.de/fileadmin/media_cosa/Dateien/Veroeffentlichungen/Sammlung/TR-2-2015-least-sqaures-with-ToA.pdf
+  // S. James Remington 1/2022
+  //
+  // A nice feature of this method is that the normal matrix depends only on the anchor arrangement 
+  // and needs to be inverted only once. Hence, the position calculation should be robust.
+  //
+  static bool first = true;  //first time through, some preliminary work
+  float b[N_ANCHORS], d[N_ANCHORS]; //temp vector, distances from anchors
+
+  static float Ainv[2][2], k[N_ANCHORS]; //these are calculated only once
+
+  int i;
+  // copy distances to local storage
+  for (i = 0; i < N_ANCHORS; i++) d[i] = last_anchor_distance[i];
+
+#ifdef DEBUG_TRILAT
+  char line[60];
+  snprintf(line, sizeof line, "d: %6.2f %6.2f %6.2f", d[0], d[1], d[2]);
+  Serial.println(line);
+#endif
+
+  if (first) {  //intermediate fixed vectors
+    first = false;
+
+    float x[N_ANCHORS], y[N_ANCHORS]; //intermediate vectors
+    float A[2][2];  //the A matrix for system of equations to solve
+
+    for (i = 0; i < N_ANCHORS; i++) {
+      x[i] = anchor_matrix[i][0];
+      y[i] = anchor_matrix[i][1];
+      k[i] = x[i] * x[i] + y[i] * y[i];
+    }
+
+    // set up least squares equation
+
+    for (i = 1; i < N_ANCHORS; i++) {
+      A[i - 1][0] = x[i] - x[0];
+      A[i - 1][1] = y[i] - y[0];
+#ifdef DEBUG_TRILAT
+      snprintf(line, sizeof line, "A  %5.2f %5.2f \n", A[i - 1][0], A[i - 1][1]);
+      Serial.println(line);
+#endif
+    }
+    //invert A
+    float det = A[0][0] * A[1][1] - A[1][0] * A[0][1];
+    if (fabs(det) < 1.0E-4) {
+      Serial.println("***Singular matrix, check anchor coordinates***");
+      while (1) delay(1); //hang
+    }
+
+#ifdef DEBUG_TRILAT
+    snprintf(line, sizeof line, "det A %8.3e\n", det);
+    Serial.println(line);
+#endif
+
+    det = 1.0 / det;
+    //scale adjoint
+    Ainv[0][0] =  det * A[1][1];
+    Ainv[0][1] = -det * A[0][1];
+    Ainv[1][0] = -det * A[1][0];
+    Ainv[1][1] =  det * A[0][0];
+  } //end if (first);
+
+  for (i = 1; i < N_ANCHORS; i++) {
+    b[i - 1] = d[0] * d[0] - d[i] * d[i] + k[i] - k[0];
+  }
+
+  //least squares solution for position
+  //solve:  2 A rc = b
+
+  current_tag_position[0] = 0.5 * (Ainv[0][0] * b[0] + Ainv[0][1] * b[1]);
+  current_tag_position[1] = 0.5 * (Ainv[1][0] * b[0] + Ainv[1][1] * b[1]);
+
+  // calculate rms error for distances
+  float rmse = 0.0, dc0 = 0.0, dc1 = 0.0;
+  for (i = 0; i < N_ANCHORS; i++) {
+    dc0 = current_tag_position[0] - anchor_matrix[i][0];
+    dc1 = current_tag_position[1] - anchor_matrix[i][1];
+    dc0 = d[i] - sqrt(dc0 * dc0 + dc1 * dc1);
+    rmse += dc0 * dc0;
+  }
+  current_distance_rmse = sqrt(rmse / ((float)N_ANCHORS));
+
+  return 1;
+}  //end trilat2D_3A
+
 #if defined(UWB_ANCHOR_AD)
 uint16_t Adelay_delta = 100; //initial binary search step size
 float this_anchor_target_distance = 7.0; //measured distance to anchor in m
@@ -276,8 +365,8 @@ void newRange()
     }
 #endif
 
-    if (detected == 4) {
-        trilat2D_4A();
+    if (detected == 3) {
+        trilat2D_3A();
 
         xVals.add(current_tag_position[0]);
         yVals.add(current_tag_position[1]);
