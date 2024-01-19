@@ -63,14 +63,14 @@
 #define ANCHOR 1
 
 //default timer delay
-#define DEFAULT_TIMER_DELAY 400
+#define DEFAULT_TIMER_DELAY 50
 //Transmit blink val, blink is sent from tag
 //at TRANSMIT_BLINK_VAL * DEFAULT_TIMER_DELAY
-#define TRANSMIT_BLINK_VAL 10
+#define TRANSMIT_BLINK_VAL 2
 
 //debug mode
 #ifndef INFO
-#define INFO true
+#define INFO false
 #endif
 
 #ifndef DEBUG

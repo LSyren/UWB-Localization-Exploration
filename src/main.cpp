@@ -5,6 +5,7 @@ Anchor and Tag.
 
 #include <SPI.h>
 #include "DW1000Ranging.h"
+#include "Smoothed.h"
 
 #define RANGE_THRESHOLD_METERS 4.0f
 uint16_t this_anchor_Adelay = 16514; //starting value 16566, 16539
@@ -12,7 +13,7 @@ uint16_t this_anchor_Adelay = 16514; //starting value 16566, 16539
 #if defined(UWB_TAG)
 #define ADDR_TAG "7B:00:22:EA:82:60:3B:9C"
 #elif defined(UWB_ANCHOR)
-#define ADDR_ANCHOR "87:17:5B:D5:A9:9A:E2:9C"
+#define ADDR_ANCHOR "04:17:5B:D5:A9:9A:E2:9C"
 #endif
 
 #if defined(MAKERFABS)
@@ -49,10 +50,13 @@ const uint8_t PIN_SS = PB12;   // spi select pin
 
 float anchor_matrix[N_ANCHORS][3] = { //list of anchor coordinates, relative to chosen origin.
     {0.0, 0.0, 0.97},  //Anchor labeled #1
-    {3.99, 5.44, 1.14},//Anchor labeled #2
-    {3.71, -0.3, 0.6}, //Anchor labeled #3
-    { -0.56, 4.88, 0.15} //Anchor labeled #4
+    {0.0, 10.0, 1.14},//Anchor labeled #2
+    {5.0, 10.0, 0.6}, //Anchor labeled #3
+    { 5.0, 0.0, 0.15} //Anchor labeled #4
 };  //Z values are ignored in this code, except to compute RMS distance error
+
+Smoothed <float> xVals; 
+Smoothed <float> yVals;
 
 float last_anchor_distance[N_ANCHORS] = {0.0}; //most recent distance reports
 uint32_t last_anchor_update[N_ANCHORS] = {0}; //millis() value last time anchor was seen
@@ -210,6 +214,7 @@ void newRange()
 #else
 void newRange()
 {
+    /*
     Serial.print("from: ");
     Serial.print(DW1000Ranging.getDistantDevice()->getShortAddress(), HEX);
     Serial.print("\t Range: ");
@@ -218,8 +223,10 @@ void newRange()
     Serial.print("\t RX power: ");
     Serial.print(DW1000Ranging.getDistantDevice()->getRXPower());
     Serial.println(" dBm");
+    */
 
     #if defined(UWB_TAG)
+    /**
     if ((DW1000Ranging.getDistantDevice()->getRange() < RANGE_THRESHOLD_METERS))
     {
         digitalWrite(DETECTION_PIN, LOW);
@@ -230,6 +237,7 @@ void newRange()
         digitalWrite(DETECTION_PIN, HIGH);
         Serial.println("OUTSIDE");
     }
+    */
     #endif
 
     // Update anchor distance.
@@ -271,31 +279,42 @@ void newRange()
     if (detected == 4) {
         trilat2D_4A();
 
-        Serial.print("P= ");
+        xVals.add(current_tag_position[0]);
+        yVals.add(current_tag_position[1]);
+        if (current_tag_position[0] > -1.0 && current_tag_position[0] < 10.0 && current_tag_position[1] > -1.0 && current_tag_position[1] < 10.0) {
+            digitalWrite(DETECTION_PIN, LOW);
+            //Serial.println("WITHIN");
+        } else {
+            digitalWrite(DETECTION_PIN, HIGH);
+            //Serial.println("OUTSIDE");
+        }
+
+        //Serial.print("P= ");
         Serial.print(current_tag_position[0]);
         Serial.write(',');
         Serial.print(current_tag_position[1]);
         Serial.write(',');
-        Serial.println(current_distance_rmse);
+        Serial.println(0.0);
+        //Serial.println(current_distance_rmse);
     }
 }
 #endif
 
 void newDevice(DW1000Device *device)
 {
-    Serial.print("ranging init; 1 device added ! -> ");
-    Serial.print(" short:");
-    Serial.println(device->getShortAddress(), HEX);
+    //Serial.print("ranging init; 1 device added ! -> ");
+    //Serial.print(" short:");
+    //Serial.println(device->getShortAddress(), HEX);
 }
 
 void inactiveDevice(DW1000Device *device)
 {
-    Serial.print("delete inactive device: ");
-    Serial.println(device->getShortAddress(), HEX);
+    //Serial.print("delete inactive device: ");
+    //Serial.println(device->getShortAddress(), HEX);
     #if defined(UWB_TAG)
     digitalWrite(DETECTION_PIN, HIGH);
     #endif
-    Serial.println("LOW, lost device");
+    //Serial.println("LOW, lost device");
 }
 
 void setup()
@@ -358,6 +377,15 @@ void setup()
     pinMode(DETECTION_PIN, OUTPUT);
     delay(1000);
     digitalWrite(DETECTION_PIN, HIGH);
+
+    // Initialise the first sensor value store. We want this to be the simple average of the last 10 values.
+	// Note: The more values you store, the more memory will be used.
+	xVals.begin(SMOOTHED_AVERAGE, 10);
+    yVals.begin(SMOOTHED_AVERAGE, 10);	
+
+	// Initialise the second sensor value store. We want this one to be a simple linear recursive exponential filter. 
+	// We set the filter level to 10. Higher numbers will result in less filtering/smoothing. Lower number result in more filtering/smoothing
+	//mySensor2.begin(SMOOTHED_EXPONENTIAL, 10);
 #endif
 }
 void loop()

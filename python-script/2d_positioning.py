@@ -23,7 +23,7 @@ from uart_source import serial_receive
 q = queue.Queue()
 
 SPACE_SIZE_X = 5.0
-SPACE_SIZE_Y = 4.45
+SPACE_SIZE_Y = 10.0
 
 class MyLayout(BoxLayout):
     def __init__(self, data_source=None, **kwargs):

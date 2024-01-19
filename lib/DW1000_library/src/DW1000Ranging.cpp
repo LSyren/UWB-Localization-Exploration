@@ -144,6 +144,7 @@ void DW1000RangingClass::generalStart() {
 		Serial.print(" short: ");
 		Serial.println(string);
 
+
 		DW1000.getPrintableNetworkIdAndShortAddress(msg);
 		Serial.print("Network ID & Device Address: ");
 		Serial.println(msg);
@@ -185,6 +186,7 @@ void DW1000RangingClass::startAsAnchor(char address[], const byte mode[], const 
 
 	//general start:
 	generalStart();
+	Serial.println(DW1000Ranging.getDistantDevice()->getShortAddress() & 0x07);
 
 	//defined type as anchor
 	_type = ANCHOR;
