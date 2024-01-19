@@ -24,7 +24,11 @@
                 pos: [self.pos[0] - 10, self.pos[1] - 10]
 
     Label:
+        # access through self.ids.id_name
+        id: coordinates
         text: '(0, 0)'
+        font_size: 24
+        color: (0, 0, 0)
 
 <MyLayout>:
     padding: 60, 60, 60, 60
@@ -43,14 +47,17 @@
     BoxLayout:
         orientation: 'vertical'
         size_hint: 1.0, 0.2
-        
+
         Label:
             id: lbl_data_per_sec
             # text_size: self.size
             text: "Data per second:"
             halign: 'left'
             size: self.size
+            color: (0, 0, 0)
+            font_size: 24
         Label:
             halign: 'left'
             text: "Current position:"
-
+            color: (0, 0, 0)
+            font_size: 24

@@ -84,10 +84,13 @@ class CanvasWidget(RelativeLayout):
 
                     data_avg[0] = sum(self.buf_x) / self.samples_count
                     data_avg[1] = sum(self.buf_y) / self.samples_count
-                    x = (data_avg[0] / SPACE_SIZE_X) * self.size[0]
-                    y = (data_avg[1] / SPACE_SIZE_Y) * self.size[1]
+                    x = data_avg[0]
+                    y = data_avg[1]
+                    x_screen_space = (x / SPACE_SIZE_X) * self.size[0]
+                    y_screen_space = (y / SPACE_SIZE_Y) * self.size[1]
 
-                    self.agent.move_to((x, y))
+                    self.agent.move_to((x_screen_space, y_screen_space))
+                    self.ids.coordinates.text = f"({x:.2f}, {y:.2f})"
         except queue.Empty:
             pass
 
