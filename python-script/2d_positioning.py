@@ -90,7 +90,7 @@ class CanvasWidget(RelativeLayout):
                     y_screen_space = (y / SPACE_SIZE_Y) * self.size[1]
 
                     self.agent.move_to((x_screen_space, y_screen_space))
-                    self.ids.coordinates.text = f"({x:.2f}, {y:.2f})"
+                    self.ids['coordinates'].text = f"({x:.2f}, {y:.2f})"
         except queue.Empty:
             pass
 
@@ -138,7 +138,7 @@ def dummy_source(q):
         # pos = (SPACE_SIZE_X, 0.8, 0)
         q.put(new_pos)
         cur_pos = new_pos
-        time.sleep(0.01)
+        time.sleep(0.03)
 
 
 if len(sys.argv) <= 1:
