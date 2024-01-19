@@ -281,7 +281,7 @@ void newRange()
 
         xVals.add(current_tag_position[0]);
         yVals.add(current_tag_position[1]);
-        if (current_tag_position[0] > -1.0 && current_tag_position[0] < 10.0 && current_tag_position[1] > -1.0 && current_tag_position[1] < 10.0) {
+        if (xVals.get() > -1.0 && xVals.get() < 10.0 && yVals.get() > -1.0 && yVals.get() < 10.0) {
             digitalWrite(DETECTION_PIN, LOW);
             //Serial.println("WITHIN");
         } else {
@@ -290,9 +290,9 @@ void newRange()
         }
 
         //Serial.print("P= ");
-        Serial.print(current_tag_position[0]);
+        Serial.print(xVals.get());
         Serial.write(',');
-        Serial.print(current_tag_position[1]);
+        Serial.print(yVals.get());
         Serial.write(',');
         Serial.println(0.0);
         //Serial.println(current_distance_rmse);
